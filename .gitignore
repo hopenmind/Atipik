@@ -1,0 +1,55 @@
+# ---------- .NET / Visual Studio ----------
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.lock.json
+*.pdb
+
+# ---------- Build outputs / packaging ----------
+publish/
+publish-x64/
+publish-arm64/
+stage/
+build/
+Atypik-win-*.zip
+icons/
+
+# ---------- Rust (optional local LLM bridge) ----------
+rust/**/target/
+**/*.rs.bk
+
+# ---------- Models / large binaries (NEVER commit) ----------
+*.gguf
+*.onnx
+*.bin
+src/LLM/textualiser.gguf
+
+# ---------- Python tooling (tools/) ----------
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# ---------- Local runtime artefacts ----------
+debug.log
+debug_enabled
+*.log
+*.tmp
+*.bak
+BACKLOG.md
+
+# ---------- Editors / OS ----------
+.idea/
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# ---------- Secrets ----------
+*.pfx
+*.snk
+.env

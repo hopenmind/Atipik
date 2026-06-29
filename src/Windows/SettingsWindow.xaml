@@ -1,0 +1,255 @@
+<Window x:Class="Atypik.Windows.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings - A-typik"
+        Width="460" Height="580"
+        ResizeMode="NoResize"
+        Background="{StaticResource BrBgDeep}"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI">
+
+  <DockPanel Margin="28,20">
+
+    <!--  Save button  -->
+    <Button x:Name="SaveBtn"
+            DockPanel.Dock="Bottom"
+            Content="Save"
+            HorizontalAlignment="Right"
+            Padding="20,7" Margin="0,14,0,0"
+            Background="{StaticResource BrAccentPurple}"
+            Foreground="#FF0F0E17"
+            BorderThickness="0" Cursor="Hand"
+            FontWeight="Bold"
+            Click="OnSave">
+      <Button.Template>
+        <ControlTemplate TargetType="Button">
+          <Border Background="{TemplateBinding Background}"
+                  CornerRadius="8" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="Center"/>
+          </Border>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+
+    <!--  Scrollable content  -->
+    <ScrollViewer DockPanel.Dock="Top"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+
+        <!--    TEXTUALISER    -->
+        <TextBlock x:Name="SectionTextualiser"
+                   Text="TEXTUALISER"
+                   FontSize="10" FontWeight="Bold"
+                   Foreground="{StaticResource BrAccentTeal}"
+                   Margin="0,0,0,10"/>
+
+        <Grid Margin="0,0,0,6">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,12,0">
+            <TextBlock x:Name="TextualiserEnableLabel"
+                       Text="Enable Textualiser"
+                       FontSize="12" FontWeight="SemiBold"
+                       Foreground="{StaticResource BrTextPrimary}"/>
+            <TextBlock x:Name="TextualiserDesc"
+                       Text="Optional LLM-based text correction. Disabled by default. Requires a GGUF model file."
+                       FontSize="10" Foreground="{StaticResource BrTextMuted}"
+                       TextWrapping="Wrap" Margin="0,2,0,0"/>
+          </StackPanel>
+          <CheckBox x:Name="TextualiserCheck"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource BrTextPrimary}"
+                    Cursor="Hand"
+                    Checked="OnTextualiserToggled"
+                    Unchecked="OnTextualiserToggled"/>
+        </Grid>
+
+        <!--  Model path row - enabled only when Textualiser is on  -->
+        <TextBlock x:Name="ModelPathLabel"
+                   Text="Model file (GGUF)"
+                   FontSize="12" Foreground="{StaticResource BrTextPrimary}"
+                   Margin="0,6,0,4"/>
+        <Grid x:Name="ModelPathRow" Margin="0,0,0,6">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBox x:Name="ModelPathBox"
+                   Background="{StaticResource BrBgCard}"
+                   Foreground="{StaticResource BrTextPrimary}"
+                   BorderBrush="{StaticResource BrBorderSubtle}"
+                   CaretBrush="{StaticResource BrAccentPurple}"
+                   Padding="8,5" Grid.Column="0"
+                   Text="src\LLM\textualiser.gguf"/>
+          <Button x:Name="BrowseBtn"
+                  Content="…" Grid.Column="1"
+                  Margin="6,0,0,0" Padding="10,5"
+                  Background="{StaticResource BrBgCard}"
+                  Foreground="{StaticResource BrTextPrimary}"
+                  BorderBrush="{StaticResource BrBorderSubtle}"
+                  BorderThickness="1" Cursor="Hand"
+                  Click="OnBrowseModel"/>
+        </Grid>
+
+        <!--  Immediacy: short replies bypass the model  -->
+        <Grid x:Name="ShortSkipRow" Margin="0,2,0,2">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,12,0">
+            <TextBlock x:Name="ShortSkipLabel"
+                       Text="Skip correction for short messages"
+                       FontSize="12" FontWeight="SemiBold"
+                       Foreground="{StaticResource BrTextPrimary}"/>
+            <TextBlock x:Name="ShortSkipDesc"
+                       Text="Quick replies bypass the model and go out instantly. Motor-artifact correction matters most on longer text."
+                       FontSize="10" Foreground="{StaticResource BrTextMuted}"
+                       TextWrapping="Wrap" Margin="0,2,0,0"/>
+          </StackPanel>
+          <CheckBox x:Name="ShortSkipCheck"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource BrTextPrimary}"
+                    Cursor="Hand"
+                    IsChecked="True"/>
+        </Grid>
+
+        <TextBlock x:Name="LatencyHint"
+                   Text="Latency: a ~2B model corrects in roughly 0.5-2 s per message; larger models are slower. Short replies are instant when the option above is on."
+                   FontSize="10" Foreground="{StaticResource BrTextMuted}"
+                   TextWrapping="Wrap" Margin="0,6,0,4"/>
+
+        <Rectangle Height="1" Fill="{StaticResource BrBorderSubtle}" Margin="0,8,0,14"/>
+
+        <!--    KEYBOARD BEHAVIOUR    -->
+        <TextBlock x:Name="SectionKeyboard"
+                   Text="KEYBOARD BEHAVIOUR"
+                   FontSize="10" FontWeight="Bold"
+                   Foreground="{StaticResource BrAccentTeal}"
+                   Margin="0,0,0,10"/>
+
+        <TextBlock x:Name="LayoutLabel"
+                   Text="Keyboard layout"
+                   FontSize="12" Foreground="{StaticResource BrTextPrimary}"
+                   Margin="0,0,0,4"/>
+        <ComboBox x:Name="LayoutCombo"
+                  Background="{StaticResource BrBgCard}"
+                  Foreground="{StaticResource BrTextPrimary}"
+                  BorderBrush="{StaticResource BrBorderSubtle}"
+                  Margin="0,0,0,14">
+          <ComboBoxItem x:Name="LayoutAuto"  Content="Auto-detect from active window" IsSelected="True" Tag="auto"/>
+          <ComboBoxItem x:Name="LayoutAzerty" Content="AZERTY (French)"                                 Tag="azerty"/>
+          <ComboBoxItem x:Name="LayoutQwerty" Content="QWERTY (English)"                                Tag="qwerty"/>
+        </ComboBox>
+
+        <Rectangle Height="1" Fill="{StaticResource BrBorderSubtle}" Margin="0,0,0,14"/>
+
+        <!--    KINETIC INJECTION    -->
+        <TextBlock x:Name="SectionKinetic"
+                   Text="KINETIC INJECTION"
+                   FontSize="10" FontWeight="Bold"
+                   Foreground="{StaticResource BrAccentTeal}"
+                   Margin="0,0,0,10"/>
+
+        <TextBlock x:Name="ProfileLabel"
+                   Text="Target typing profile"
+                   FontSize="12" Foreground="{StaticResource BrTextPrimary}"
+                   Margin="0,0,0,4"/>
+        <ComboBox x:Name="ProfileCombo"
+                  Background="{StaticResource BrBgCard}"
+                  Foreground="{StaticResource BrTextPrimary}"
+                  BorderBrush="{StaticResource BrBorderSubtle}"
+                  Margin="0,0,0,4">
+          <ComboBoxItem x:Name="ProfileExp"  Content="Experienced typist (k=1.85)" IsSelected="True" Tag="1.85"/>
+          <ComboBoxItem x:Name="ProfileMod"  Content="Moderate typing (k=1.50)"                      Tag="1.50"/>
+          <ComboBoxItem x:Name="ProfileSlow" Content="Slow / careful (k=1.20)"                       Tag="1.20"/>
+        </ComboBox>
+        <TextBlock x:Name="WeibullHint"
+                   Text="Adjusts the Weibull distribution of inter-keystroke delays."
+                   FontSize="10" Foreground="{StaticResource BrTextMuted}"
+                   Margin="0,0,0,10"/>
+
+        <Grid Margin="0,0,0,6">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,12,0">
+            <TextBlock x:Name="PasteModeLabel"
+                       Text="Fast paste mode"
+                       FontSize="12" FontWeight="SemiBold"
+                       Foreground="{StaticResource BrTextPrimary}"/>
+            <TextBlock x:Name="PasteModeDesc"
+                       Text="Paste the whole message at once (Ctrl+V) instead of typing it. Faster for long text, but it loses the human-like keystroke signature."
+                       FontSize="10" Foreground="{StaticResource BrTextMuted}"
+                       TextWrapping="Wrap" Margin="0,2,0,0"/>
+          </StackPanel>
+          <CheckBox x:Name="PasteModeCheck"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource BrTextPrimary}"
+                    Cursor="Hand"/>
+        </Grid>
+
+        <TextBlock x:Name="TypoRateLabel"
+                   Text="Topographic error rate"
+                   FontSize="12" Foreground="{StaticResource BrTextPrimary}"
+                   Margin="0,0,0,4"/>
+        <Grid Margin="0,0,0,4">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="50"/>
+          </Grid.ColumnDefinitions>
+          <Slider x:Name="TypoRateSlider"
+                  Grid.Column="0"
+                  Minimum="0" Maximum="5" Value="1.2"
+                  TickFrequency="0.1"
+                  Foreground="{StaticResource BrAccentPurple}"
+                  ValueChanged="OnTypoRateChanged"/>
+          <TextBlock x:Name="TypoRateValue"
+                     Grid.Column="1"
+                     Text="1.2 %"
+                     FontSize="11"
+                     Foreground="{StaticResource BrTextPrimary}"
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center"/>
+        </Grid>
+
+        <Rectangle Height="1" Fill="{StaticResource BrBorderSubtle}" Margin="0,8,0,14"/>
+
+        <!--    TONE FILTER    -->
+        <TextBlock x:Name="SectionToneFilter"
+                   Text="TONE FILTER"
+                   FontSize="10" FontWeight="Bold"
+                   Foreground="{StaticResource BrAccentTeal}"
+                   Margin="0,0,0,10"/>
+
+        <TextBlock x:Name="FrustrationLabel"
+                   Text="Frustration mode"
+                   FontSize="12" Foreground="{StaticResource BrTextPrimary}"
+                   Margin="0,0,0,4"/>
+        <ComboBox x:Name="FrustrationCombo"
+                  Background="{StaticResource BrBgCard}"
+                  Foreground="{StaticResource BrTextPrimary}"
+                  BorderBrush="{StaticResource BrBorderSubtle}"
+                  Margin="0,0,0,4"
+                  SelectionChanged="OnFrustrationSelectionChanged">
+          <ComboBoxItem x:Name="FrustOff"      Content="Disabled"                  Tag="off"      IsSelected="True"/>
+          <ComboBoxItem x:Name="FrustKeywords" Content="Keywords  (rules, instant)" Tag="keywords"/>
+          <ComboBoxItem x:Name="FrustRewrite"  Content="Rewrite  (LLM, natural)"   Tag="rewrite"/>
+        </ComboBox>
+        <TextBlock x:Name="FrustrationDesc"
+                   Text="Smooths injected text before sending. Rewrite requires Textualiser."
+                   FontSize="10" Foreground="{StaticResource BrTextMuted}"
+                   TextWrapping="Wrap" Margin="0,0,0,6"/>
+
+      </StackPanel>
+    </ScrollViewer>
+
+  </DockPanel>
+</Window>

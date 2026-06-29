@@ -1,0 +1,2 @@
+# CRT static linking not possible with llama-cpp-sys-2 (C++ objects use dynamic CRT).
+# On Windows 10/11, vcruntime140.dll and ucrtbase.dll are OS-provided — no user install needed.

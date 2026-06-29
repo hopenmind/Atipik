@@ -1,0 +1,45 @@
+name: Bug report
+description: Report something that is not working as expected
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the problem. Steps to reproduce help a lot.
+      placeholder: "1. Pressed ... 2. Expected ... 3. Got ..."
+    validations:
+      required: true
+  - type: dropdown
+    id: frustration
+    attributes:
+      label: Was the Textualiser (local model) on?
+      options:
+        - "No (default, no model)"
+        - "Yes"
+        - "Not sure"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: A'Tipik version
+      placeholder: "0.1.0"
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 23H2"
+  - type: textarea
+    id: log
+    attributes:
+      label: Relevant log excerpt (optional)
+      description: Found at %APPDATA%\Atypik\debug.log. Paste only the relevant lines.
+      render: shell
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I have NOT included any personal data or private message content.
+          required: true

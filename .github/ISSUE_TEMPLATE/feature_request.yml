@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest an idea for A'Tipik
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      placeholder: "When I ... , it is hard to ..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Your proposed solution
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Area
+      options:
+        - Capture / overlay
+        - Kinetic injection
+        - Tone filter
+        - Textualiser (local LLM)
+        - Settings / UI
+        - i18n
+        - Other
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      options:
+        - label: This keeps everything local (no network, no cloud LLM).
+          required: true

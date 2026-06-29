@@ -1,0 +1,118 @@
+<Window x:Class="Atypik.Windows.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About - A-typik"
+        Width="440" Height="520"
+        ResizeMode="NoResize"
+        Background="{StaticResource BrBgDeep}"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI">
+
+  <StackPanel Margin="32,28">
+
+    <!-- Logo + name -->
+    <Image Source="assets/logo.png"
+           Width="44" Height="44"
+           HorizontalAlignment="Left"
+           Margin="0,0,0,10"
+           RenderOptions.BitmapScalingMode="HighQuality"/>
+    <TextBlock FontSize="24" FontWeight="Black"
+               Foreground="{StaticResource BrTextPrimary}">
+      A<Run Foreground="{StaticResource BrAccentPurple}">'</Run>TIPIK
+    </TextBlock>
+    <TextBlock x:Name="AboutSubtitle" Style="{StaticResource SubStyle}" Margin="2,2,0,0">
+      a behavioural normaliser
+    </TextBlock>
+    <TextBlock x:Name="AboutVersion"
+               Text="Version 0.1.0 - Pre-release"
+               FontSize="11" Foreground="{StaticResource BrTextMuted}"
+               Margin="2,4,0,0"/>
+
+    <Rectangle Height="1" Fill="{StaticResource BrBorderSubtle}" Margin="0,18,0,18"/>
+
+    <!--  Editor  -->
+    <TextBlock x:Name="AboutSectionEditor"
+               Text="EDITOR" FontSize="10" FontWeight="Bold"
+               Foreground="{StaticResource BrBrandLight}" Margin="0,0,0,8"/>
+    <TextBlock Style="{StaticResource BodyStyle}" LineHeight="22">
+      <Run FontWeight="Bold" FontSize="13"
+           Foreground="{StaticResource BrTextPrimary}">HOPE 'N MIND</Run>
+      <Run Foreground="{StaticResource BrTextMuted}">  -  HNM</Run>
+      <LineBreak/>
+      <Run>Simplified single-member joint-stock company (SASU) - holding</Run>
+      <LineBreak/>
+      <Run>SIREN 938 261 310  ·  RCS Brest  ·  Registered 17/12/2024</Run>
+      <LineBreak/>
+      <Run>NAF-APE 6420Z  ·  </Run>
+      <Run Foreground="{StaticResource BrBrandLight}">hopenmind.com</Run>
+      <Run>  ·  contact@hopenmind.com</Run>
+    </TextBlock>
+
+    <!-- Symbol (publisher logo) -->
+    <Rectangle Height="1" Fill="{StaticResource BrBorderSubtle}" Margin="0,16,0,16"/>
+    <TextBlock x:Name="AboutSectionSymbol"
+               Text="SYMBOL" FontSize="10" FontWeight="Bold"
+               Foreground="{StaticResource BrBrandLight}" Margin="0,0,0,10"/>
+    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+      <Image Source="assets/logo-editeur.png"
+             Width="96" Height="96"
+             VerticalAlignment="Center"
+             RenderOptions.BitmapScalingMode="HighQuality"/>
+      <TextBlock Style="{StaticResource BodyStyle}" FontSize="11" LineHeight="19"
+                 Margin="16,0,0,0" VerticalAlignment="Center" MaxWidth="230">
+        <Run FontStyle="Italic" Foreground="{StaticResource BrTextMuted}">Hope 'n Mind - infinity meeting the eight paths. Balance between inner life and action.</Run>
+      </TextBlock>
+    </StackPanel>
+
+    <Rectangle Height="1" Fill="{StaticResource BrBorderSubtle}" Margin="0,16,0,16"/>
+
+    <!--  License  -->
+    <TextBlock x:Name="AboutSectionLicense"
+               Text="LICENSE &amp; TERMS OF USE"
+               FontSize="10" FontWeight="Bold"
+               Foreground="{StaticResource BrBrandLight}" Margin="0,0,0,8"/>
+
+    <ScrollViewer Height="130" VerticalScrollBarVisibility="Auto">
+      <TextBlock Style="{StaticResource BodyStyle}" FontSize="11" LineHeight="19">
+        <Run FontWeight="SemiBold"
+             Foreground="{StaticResource BrTextPrimary}">Proprietary licence - personal use only</Run>
+        <LineBreak/><LineBreak/>
+        <Run>A'Tipik is distributed for personal, non-commercial purposes exclusively via the publisher's website. Any redistribution, modification or resale is prohibited without prior written consent from Hope 'n Mind SASU.</Run>
+        <LineBreak/><LineBreak/>
+        <Run FontWeight="SemiBold"
+             Foreground="{StaticResource BrWarnYellow}">Important - responsible use</Run>
+        <LineBreak/>
+        <Run>This tool is designed for atypical individuals (ASD, ADHD, HPI, dyspraxia, undiagnosed visual disorders) whose natural keystroke patterns are incorrectly flagged by behavioural telemetry systems. The user is solely responsible for their use of the software. Hope 'n Mind SASU accepts no liability for use that violates the terms of service of third-party platforms.</Run>
+        <LineBreak/><LineBreak/>
+        <Run FontWeight="SemiBold"
+             Foreground="{StaticResource BrTextPrimary}">Data &amp; privacy</Run>
+        <LineBreak/>
+        <Run>No entered data is transmitted to an external server. The correction model runs entirely locally. A'Tipik collects no telemetry.</Run>
+      </TextBlock>
+    </ScrollViewer>
+
+    <Button x:Name="CloseBtn"
+            Content="Close"
+            Margin="0,18,0,0"
+            HorizontalAlignment="Right"
+            Padding="20,7"
+            Background="{StaticResource BrBgCard}"
+            Foreground="{StaticResource BrTextPrimary}"
+            BorderBrush="{StaticResource BrBorderSubtle}"
+            BorderThickness="1"
+            Cursor="Hand"
+            Click="OnClose">
+      <Button.Template>
+        <ControlTemplate TargetType="Button">
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="8" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="Center"/>
+          </Border>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+
+  </StackPanel>
+</Window>

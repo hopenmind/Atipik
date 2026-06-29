@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version label (e.g. 0.1.0)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.rid }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64, win-arm64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # Optional local LLM bridge. Built only for x64 (it is optional; the app
+      # is fully functional without it). Cross-compiling llama.cpp to ARM64 is
+      # out of scope, so the ARM64 build ships without the DLL.
+      - name: Setup Rust (x64 only, optional)
+        if: matrix.rid == 'win-x64'
+        uses: dtolnay/rust-toolchain@stable
+        continue-on-error: true
+
+      - name: Build the local LLM bridge (x64 only)
+        if: matrix.rid == 'win-x64'
+        shell: pwsh
+        continue-on-error: true
+        run: cargo build --release --manifest-path rust/atypik-llm/Cargo.toml
+
+      - name: Publish single-file exe
+        shell: pwsh
+        run: |
+          dotnet publish Atypik.csproj -c Release `
+            -r ${{ matrix.rid }} `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -o publish
+
+      - name: Stage package
+        shell: pwsh
+        run: |
+          $stage = "stage/Atypik"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item "publish/Atypik.exe" -Destination $stage
+          Copy-Item "assets" -Destination $stage -Recurse -ErrorAction SilentlyContinue
+          # Optional Rust bridge, only present for x64.
+          $dll = "rust/atypik-llm/target/release/atypik_llm.dll"
+          if (Test-Path $dll) { Copy-Item $dll -Destination $stage }
+          Compress-Archive -Path "stage/Atypik/*" -DestinationPath "Atypik-${{ matrix.rid }}.zip" -Force
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Atypik-${{ matrix.rid }}
+          path: Atypik-${{ matrix.rid }}.zip
+
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = "${{ github.event.inputs.version }}"
+          if (-not $v) { $v = "${{ github.ref_name }}" }
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Attach to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: A'Tipik ${{ steps.ver.outputs.version }}
+          files: Atypik-${{ matrix.rid }}.zip
+          draft: false
+          prerelease: true

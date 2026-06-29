@@ -1,0 +1,142 @@
+<Window x:Class="Atypik.Overlay.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowStartupLocation="Manual"
+        MinHeight="28"
+        MinWidth="80">
+
+  <Grid>
+
+    <!-- Frame border + text input -->
+    <Border x:Name="FrameBorder"
+            BorderBrush="#FF7C36CC"
+            BorderThickness="2"
+            Background="#E0120A1E">
+      <Grid>
+
+        <!-- Text input - fills entire frame -->
+        <TextBox x:Name="InputBox"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto"
+                 Background="Transparent"
+                 Foreground="White"
+                 CaretBrush="#FFA77BD8"
+                 SelectionBrush="#557C36CC"
+                 BorderThickness="0"
+                 Padding="6,4"
+                 FontFamily="Segoe UI"
+                 FontSize="12"
+                 VerticalContentAlignment="Top"
+                 KeyDown="OnInputKeyDown"/>
+
+        <!-- Progress bar (shown during injection, overlaid at bottom of frame) -->
+        <Border x:Name="ProgressBorder"
+                VerticalAlignment="Bottom"
+                Height="4"
+                Visibility="Collapsed"
+                Background="Transparent">
+          <ProgressBar x:Name="InjectionProgress"
+                       Height="4"
+                       Minimum="0" Maximum="100" Value="0"
+                       Foreground="#FF45D6C5"
+                       Background="#2245D6C5"
+                       BorderThickness="0"/>
+        </Border>
+
+        <!-- Status pill - bottom left, shown briefly then hides -->
+        <Border x:Name="StatusPill"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Left"
+                Margin="6,0,0,6"
+                Background="#DD120A1E"
+                BorderBrush="#FF7C36CC"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="8,3"
+                Visibility="Collapsed">
+          <TextBlock x:Name="StatusLabel"
+                     Foreground="#FFCFC1DE"
+                     FontFamily="Segoe UI"
+                     FontSize="10"/>
+        </Border>
+
+      </Grid>
+    </Border>
+
+    <!--    Options button - top-right corner, always visible    -->
+    <Button x:Name="OptionsBtn"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Margin="0,4,4,0"
+            Width="22" Height="22"
+            Content="⋮"
+            ToolTip="Options"
+            Cursor="Hand"
+            Opacity="0.7"
+            Click="OnOptionsClick"
+            Background="#CC120A1E"
+            Foreground="#FFA77BD8"
+            BorderThickness="0">
+      <Button.Template>
+        <ControlTemplate TargetType="Button">
+          <Border Background="{TemplateBinding Background}"
+                  CornerRadius="4"
+                  Width="22" Height="22">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Background" Value="#FF221634"/>
+              <Setter Property="Opacity"    Value="1"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+
+    <!-- Options context menu (hidden by default) -->
+    <Popup x:Name="OptionsPopup"
+           StaysOpen="False"
+           PlacementTarget="{Binding ElementName=OptionsBtn}"
+           Placement="Bottom">
+      <Border Background="#FF170F26"
+              BorderBrush="#FF5E1FA8"
+              BorderThickness="1"
+              CornerRadius="4"
+              Padding="4">
+        <StackPanel>
+          <Button x:Name="PopupCancelBtn"
+                  Content="✕  Close overlay"
+                  Cursor="Hand"
+                  Click="OnCancel"
+                  Background="Transparent"
+                  Foreground="#FFCC4444"
+                  BorderThickness="0"
+                  Padding="8,4"
+                  HorizontalContentAlignment="Left">
+            <Button.Template>
+              <ControlTemplate TargetType="Button">
+                <Border Background="{TemplateBinding Background}"
+                        CornerRadius="3" Padding="{TemplateBinding Padding}">
+                  <ContentPresenter/>
+                </Border>
+                <ControlTemplate.Triggers>
+                  <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#22CC4444"/>
+                  </Trigger>
+                </ControlTemplate.Triggers>
+              </ControlTemplate>
+            </Button.Template>
+          </Button>
+        </StackPanel>
+      </Border>
+    </Popup>
+
+  </Grid>
+</Window>

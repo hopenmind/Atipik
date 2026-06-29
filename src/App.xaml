@@ -1,0 +1,125 @@
+<Application x:Class="Atypik.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Application.Resources>
+
+    <!-- A'TIPIK BRAND PALETTE
+         Source: logo.png - violet / lavender tones (#502090 / #6020A0 / lavender).
+         Backgrounds: very dark violet. Text: light lavender (high contrast).
+         Complementary accents: mint (teal) and amber, for legibility on violet.
+    -->
+
+    <!-- Backgrounds - deep violet-black -->
+    <Color x:Key="BgDeep">#FF0B0712</Color>
+    <Color x:Key="BgCard">#FF170F26</Color>
+    <Color x:Key="BgHover">#FF221634</Color>
+
+    <!-- Brand violet - taken from the logo -->
+    <Color x:Key="BrandBlue">#FF5E1FA8</Color>       <!-- primary violet (key kept for compatibility) -->
+    <Color x:Key="BrandBlueLight">#FFA77BD8</Color>  <!-- light lavender / highlight -->
+    <Color x:Key="BrandBlueDark">#FF3A1070</Color>   <!-- deep violet / shadow -->
+    <Color x:Key="BrandBlueGlow">#FF7C36CC</Color>   <!-- glow / focus ring -->
+
+    <!-- Text - light tones to contrast on dark violet backgrounds -->
+    <Color x:Key="TextPrimary">#FFFFFFFF</Color>
+    <Color x:Key="TextMuted">#FFCFC1DE</Color>       <!-- light lavender, good contrast -->
+    <Color x:Key="TextSubtle">#FF9C8CB8</Color>      <!-- dimmed lavender, still readable -->
+
+    <!-- UI -->
+    <Color x:Key="WarnYellow">#FFFFD23F</Color>
+    <Color x:Key="BorderSubtle">#FF2C1E44</Color>
+    <Color x:Key="BorderBrand">#FF4A2A7A</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="BrBgDeep"        Color="{StaticResource BgDeep}"/>
+    <SolidColorBrush x:Key="BrBgCard"        Color="{StaticResource BgCard}"/>
+    <SolidColorBrush x:Key="BrBgHover"       Color="{StaticResource BgHover}"/>
+    <SolidColorBrush x:Key="BrBrandBlue"     Color="{StaticResource BrandBlue}"/>
+    <SolidColorBrush x:Key="BrBrandLight"    Color="{StaticResource BrandBlueLight}"/>
+    <SolidColorBrush x:Key="BrBrandDark"     Color="{StaticResource BrandBlueDark}"/>
+    <SolidColorBrush x:Key="BrTextPrimary"   Color="{StaticResource TextPrimary}"/>
+    <SolidColorBrush x:Key="BrTextMuted"     Color="{StaticResource TextMuted}"/>
+    <SolidColorBrush x:Key="BrTextSubtle"    Color="{StaticResource TextSubtle}"/>
+    <SolidColorBrush x:Key="BrWarnYellow"    Color="{StaticResource WarnYellow}"/>
+    <SolidColorBrush x:Key="BrBorderSubtle"  Color="{StaticResource BorderSubtle}"/>
+    <SolidColorBrush x:Key="BrBorderBrand"   Color="{StaticResource BorderBrand}"/>
+
+    <!-- Gradient brand (horizontal - logo direction) -->
+    <LinearGradientBrush x:Key="BrBrandGradient" StartPoint="0,0" EndPoint="1,0">
+      <GradientStop Color="{StaticResource BrandBlueDark}"  Offset="0"/>
+      <GradientStop Color="{StaticResource BrandBlue}"      Offset="0.5"/>
+      <GradientStop Color="{StaticResource BrandBlueLight}" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Accents: lavande (brand), menthe (complementaire, forte lisibilite), ambre (alerte) -->
+    <SolidColorBrush x:Key="BrAccentPurple" Color="{StaticResource BrandBlueLight}"/>
+    <SolidColorBrush x:Key="BrAccentOrange" Color="#FFF4B740"/>
+    <SolidColorBrush x:Key="BrAccentTeal"   Color="#FF45D6C5"/>
+
+    <!--    Typography    -->
+    <Style x:Key="HeadStyle" TargetType="TextBlock">
+      <Setter Property="Foreground"  Value="{StaticResource BrTextPrimary}"/>
+      <Setter Property="FontFamily"  Value="Segoe UI"/>
+      <Setter Property="FontWeight"  Value="Bold"/>
+      <Setter Property="FontSize"    Value="22"/>
+    </Style>
+    <Style x:Key="SubStyle" TargetType="TextBlock">
+      <Setter Property="Foreground"  Value="{StaticResource BrAccentPurple}"/>
+      <Setter Property="FontFamily"  Value="Segoe UI"/>
+      <Setter Property="FontSize"    Value="11"/>
+      <Setter Property="FontStyle"   Value="Italic"/>
+    </Style>
+    <Style x:Key="BodyStyle" TargetType="TextBlock">
+      <Setter Property="Foreground"  Value="{StaticResource BrTextMuted}"/>
+      <Setter Property="FontFamily"  Value="Segoe UI"/>
+      <Setter Property="FontSize"    Value="12"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <!--    Icon button    -->
+    <Style x:Key="IconBtn" TargetType="Button">
+      <Setter Property="Background"   Value="{StaticResource BrBgCard}"/>
+      <Setter Property="Foreground"   Value="{StaticResource BrTextPrimary}"/>
+      <Setter Property="BorderBrush"  Value="{StaticResource BrBorderSubtle}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Cursor"       Value="Hand"/>
+      <Setter Property="Width"        Value="130"/>
+      <Setter Property="Height"       Value="110"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="14"
+                    Padding="12">
+              <ContentPresenter HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource BrBgHover}"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#FF2E2C50"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!--    Menu style    -->
+    <Style TargetType="Menu">
+      <Setter Property="Background"  Value="{StaticResource BrBgDeep}"/>
+      <Setter Property="Foreground"  Value="{StaticResource BrTextMuted}"/>
+      <Setter Property="FontFamily"  Value="Segoe UI"/>
+      <Setter Property="FontSize"    Value="12"/>
+    </Style>
+    <Style TargetType="MenuItem">
+      <Setter Property="Background"  Value="{StaticResource BrBgDeep}"/>
+      <Setter Property="Foreground"  Value="{StaticResource BrTextPrimary}"/>
+    </Style>
+
+  </Application.Resources>
+</Application>

@@ -1,0 +1,99 @@
+<Window x:Class="Atypik.Windows.ExtensionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Extensions - A-typik"
+        Width="460" Height="500"
+        ResizeMode="NoResize"
+        Background="{StaticResource BrBgDeep}"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI">
+
+  <DockPanel Margin="28,24">
+
+    <!--  Bottom buttons  -->
+    <Border DockPanel.Dock="Bottom" Padding="0,12,0,0">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button x:Name="AddScriptBtn"
+                Content="Add script…"
+                Padding="16,7" Margin="0,0,8,0"
+                Background="{StaticResource BrBgCard}"
+                Foreground="{StaticResource BrTextPrimary}"
+                BorderBrush="{StaticResource BrBorderSubtle}"
+                BorderThickness="1" Cursor="Hand"
+                Click="OnAddScript">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="{TemplateBinding BorderThickness}"
+                      CornerRadius="8" Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center"/>
+              </Border>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+        <Button x:Name="AddModuleBtn"
+                Content="Add module…"
+                Padding="16,7"
+                Background="{StaticResource BrAccentOrange}"
+                Foreground="#FF0F0E17"
+                BorderThickness="0" Cursor="Hand"
+                FontWeight="Bold"
+                Click="OnAddModule">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border Background="{TemplateBinding Background}"
+                      CornerRadius="8" Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center"/>
+              </Border>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+      </StackPanel>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Top">
+
+      <TextBlock x:Name="ExtSectionLabel"
+                 Text="INSTALLED EXTENSIONS"
+                 FontSize="10" FontWeight="Bold"
+                 Foreground="{StaticResource BrAccentTeal}"
+                 Margin="0,0,0,6"/>
+      <TextBlock x:Name="ExtDescription"
+                 Style="{StaticResource BodyStyle}" FontSize="11"
+                 Margin="0,0,0,16">
+        Add Python scripts, .dll modules or MCP connectors to extend A'Tipik.
+      </TextBlock>
+
+      <!--  Extension list  -->
+      <Border Background="{StaticResource BrBgCard}"
+              BorderBrush="{StaticResource BrBorderSubtle}"
+              BorderThickness="1" CornerRadius="10"
+              MinHeight="200">
+        <ListBox x:Name="ExtensionsList"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 Foreground="{StaticResource BrTextPrimary}"
+                 FontSize="12"
+                 Padding="8">
+          <!--  Populated in code-behind  -->
+        </ListBox>
+      </Border>
+
+      <Rectangle Height="1" Fill="{StaticResource BrBorderSubtle}" Margin="0,16,0,16"/>
+
+      <!--  Security note  -->
+      <Border Background="#FF1A1210"
+              BorderBrush="{StaticResource BrAccentOrange}"
+              BorderThickness="0,0,0,2"
+              CornerRadius="6" Padding="12,8">
+        <TextBlock Style="{StaticResource BodyStyle}" FontSize="11">
+          <Run x:Name="SecurityLabel"
+               Foreground="{StaticResource BrAccentOrange}" FontWeight="Bold">Security - </Run>
+          <Run x:Name="SecurityDesc">Only install scripts from sources you trust. Loaded modules run in your user space.</Run>
+        </TextBlock>
+      </Border>
+
+    </StackPanel>
+  </DockPanel>
+</Window>

@@ -1,0 +1,131 @@
+A'Tipik - Dual License
+======================
+
+Copyright (c) 2024-2026 Hope 'n Mind SASU
+Author: DESVAUX G.J.Y.
+ORCID: 0009-0008-9813-4627
+Contact: contact@hopenmind.com
+SIREN: 938 261 310 - RCS Brest - Immatriculée le 17/12/2024
+
+This software is dual-licensed. You may choose EITHER of the following
+licenses, but you must comply with all terms of the license you choose.
+
+================================================================================
+OPTION A - ACADEMIC, PERSONAL, AND NON-COMMERCIAL USE (Apache License 2.0)
+================================================================================
+
+For academic research, teaching, non-profit institutions, personal use by
+individuals (including atypical individuals using this tool for its intended
+accessibility purpose), and any non-commercial purpose, this software is
+licensed under the Apache License, Version 2.0.
+
+You may obtain a copy of the License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+CITATION REQUIREMENT (in addition to Apache 2.0 attribution):
+If you use this software in academic work or reference it in a publication,
+please cite:
+
+    DESVAUX G.J.Y. (2026). A'Tipik: Behavioural Normalisation Tool for
+    Atypical Keystroke Dynamics. Hope 'n Mind SASU.
+    Contact: contact@hopenmind.com
+
+================================================================================
+OPTION B - COMMERCIAL USE (Proprietary License)
+================================================================================
+
+For any commercial use - including but not limited to integration into
+commercial products, use by for-profit entities in revenue-generating
+activities, distribution as part of a paid service, licensing to third
+parties, or use by commercial contractors performing work for profit -
+a separate commercial license from Hope 'n Mind SASU is required.
+
+Without a valid commercial license agreement signed by Hope 'n Mind SASU:
+
+1. OWNERSHIP
+   All source code, algorithms, documentation, and associated materials
+   in this repository remain the exclusive intellectual property of
+   Hope 'n Mind SASU. This includes but is not limited to the behavioral
+   injection pipeline, the modular processing architecture, the frustration
+   filter design, and all associated configuration and localisation files.
+
+2. COMMERCIAL RESTRICTIONS
+   You may NOT, for commercial purposes:
+   (a) copy, modify, merge, publish, distribute, sublicense, or sell
+       copies of this software or any derivative works;
+   (b) integrate the software or its derivatives into commercial products,
+       SaaS platforms, or revenue-generating services;
+   (c) use the software as a component in automated systems operated
+       commercially, including accessibility platforms sold to institutions.
+
+3. INTEROPERABILITY EXCEPTION
+   Nothing in this license shall be construed to limit rights expressly
+   granted by applicable law. In particular, and in accordance with
+   Directive 2009/24/EC of the European Parliament and of the Council
+   on the legal protection of computer programs, decompilation for the
+   sole purpose of achieving interoperability with independently developed
+   software is permitted to the extent authorised by law, provided that:
+   (a) the information necessary to achieve interoperability is not
+       otherwise readily available;
+   (b) the acts are confined to those parts necessary to achieve
+       interoperability;
+   (c) the information obtained is not used for purposes other than
+       achieving interoperability.
+   Any use beyond this statutory exception requires a commercial license.
+
+4. OBTAINING A COMMERCIAL LICENSE
+   Contact: contact@hopenmind.com
+   Please describe your intended commercial use when requesting a license.
+   Hope 'n Mind SASU reserves the right to refuse any commercial license
+   request without providing justification.
+
+5. NO WARRANTY
+   THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+   IN NO EVENT SHALL HOPE 'N MIND SASU OR ITS AUTHOR BE LIABLE FOR ANY
+   CLAIM, DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES ARISING FROM THE USE OF OR INABILITY TO USE THIS SOFTWARE.
+
+6. RESPONSIBLE USE
+   This software is designed to assist atypical individuals in normalising
+   their behavioral telemetry signature. It is the sole responsibility of
+   the user to ensure that their use of this software complies with the
+   terms of service of any third-party platform or service. Hope 'n Mind
+   SASU accepts no liability for use that violates third-party terms,
+   applicable law, or that causes harm to others.
+
+7. GOVERNING LAW AND JURISDICTION
+   This license is governed by French law and applicable European Union
+   intellectual property regulations, including but not limited to
+   Directive 2009/24/EC and Regulation (EU) 2019/790.
+   Any disputes arising from or relating to this license shall be submitted
+   to the exclusive jurisdiction of the competent courts of Brest, France,
+   unless mandatory applicable law requires otherwise.
+
+================================================================================
+HOW TO CHOOSE
+================================================================================
+
+  - Individual user, including atypical persons using this for accessibility
+    -> -> Option A (Apache 2.0). No request needed.
+
+  - Academic researcher, student, non-profit institution
+    -> -> Option A (Apache 2.0). Cite the work. No request needed.
+
+  - Company, institution, or for-profit entity of any kind
+    -> -> Option B. Contact contact@hopenmind.com before any use.
+
+  - Accessibility platform, EdTech, or assistive technology provider
+    -> -> Option B. Contact contact@hopenmind.com.
+
+  - Unsure
+    -> -> Contact contact@hopenmind.com. We will help you determine the
+      applicable option at no charge.
+
+================================================================================

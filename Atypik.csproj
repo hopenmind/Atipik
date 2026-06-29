@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>Atypik</AssemblyName>
+    <RootNamespace>Atypik</RootNamespace>
+    <ApplicationIcon>src\Resources\atypik.ico</ApplicationIcon>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!--    Portable single-file exe - no install required    -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <!--  Embed native DLLs inside the exe, extracted to %TEMP% on first run  -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--  Declare App.xaml as entry-point (SDK auto-detect doesn't reliably find it in src/)  -->
+    <ApplicationDefinition Include="src\App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="src\Resources\**" />
+  </ItemGroup>
+
+  <!-- Brand assets (app logo, editor logo) - copied next to the exe for tray + XAML Image -->
+  <ItemGroup>
+    <None Include="assets\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--  Rust DLL - copied to output dir so dev builds work, bundled on publish  -->
+  <ItemGroup>
+    <None Include="rust\atypik-llm\target\release\atypik_llm.dll"
+          Condition="Exists('rust\atypik-llm\target\release\atypik_llm.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--  Copy Rust DLL after build (dev mode)  -->
+  <Target Name="CopyRustDll" AfterTargets="Build">
+    <Copy SourceFiles="rust\atypik-llm\target\release\atypik_llm.dll"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('rust\atypik-llm\target\release\atypik_llm.dll')" />
+  </Target>
+
+</Project>

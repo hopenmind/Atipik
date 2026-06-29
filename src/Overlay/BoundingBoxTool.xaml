@@ -1,0 +1,75 @@
+  <Window x:Class="Atypik.Overlay.BoundingBoxTool"
+          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          WindowStyle="None"
+          AllowsTransparency="True"
+          Background="#44060012"
+          Topmost="True"
+          Cursor="Cross"
+          ShowInTaskbar="False"
+          WindowStartupLocation="Manual"
+          Left="0" Top="0">
+
+  <Canvas x:Name="DrawCanvas"
+          Background="Transparent"
+          MouseLeftButtonDown="OnMouseDown"
+          MouseMove="OnMouseMove"
+          MouseLeftButtonUp="OnMouseUp">
+
+    <!-- Instruction -->
+    <Border x:Name="HintBorder"
+            Canvas.Left="0" Canvas.Top="0"
+            Background="#CC170F26"
+            BorderBrush="#FF5E1FA8"
+            BorderThickness="0,0,0,2"
+            Padding="20,10">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="✦  "
+                   Foreground="#FF5E1FA8"
+                   FontSize="13" VerticalAlignment="Center"/>
+        <TextBlock Foreground="White" FontFamily="Segoe UI"
+                   FontSize="13" VerticalAlignment="Center">
+          <Run FontWeight="SemiBold">Draw a frame</Run>
+          <Run Foreground="#FFCFC1DE"> around the input area - </Run>
+          <Run FontWeight="SemiBold" Foreground="#FFFFD23F">exclude interactive controls</Run>
+          <Run Foreground="#FFCFC1DE"> - Esc to cancel</Run>
+        </TextBlock>
+      </StackPanel>
+    </Border>
+
+    <!-- Selection rectangle - drawn during drag -->
+    <Rectangle x:Name="SelectionRect"
+               Visibility="Collapsed"
+               Stroke="#FF5E1FA8"
+               StrokeThickness="2"
+               Fill="#225E1FA8"
+               StrokeDashArray="6 3"
+               IsHitTestVisible="False"/>
+
+    <!-- Corner anchors -->
+    <Ellipse x:Name="CornerTL" Width="8" Height="8"
+             Fill="#FFA77BD8" Visibility="Collapsed" IsHitTestVisible="False"/>
+    <Ellipse x:Name="CornerTR" Width="8" Height="8"
+             Fill="#FFA77BD8" Visibility="Collapsed" IsHitTestVisible="False"/>
+    <Ellipse x:Name="CornerBL" Width="8" Height="8"
+             Fill="#FFA77BD8" Visibility="Collapsed" IsHitTestVisible="False"/>
+    <Ellipse x:Name="CornerBR" Width="8" Height="8"
+             Fill="#FFA77BD8" Visibility="Collapsed" IsHitTestVisible="False"/>
+
+    <!-- Dimensions label -->
+    <Border x:Name="DimLabel"
+            Visibility="Collapsed"
+            Background="#CC170F26"
+            BorderBrush="#FF5E1FA8"
+            BorderThickness="1"
+            CornerRadius="4"
+            Padding="6,3"
+            IsHitTestVisible="False">
+      <TextBlock x:Name="DimText"
+                 Foreground="#FFA77BD8"
+                 FontFamily="Cascadia Code, Consolas, monospace"
+                 FontSize="11"/>
+    </Border>
+
+  </Canvas>
+</Window>
