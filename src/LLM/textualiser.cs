@@ -75,6 +75,33 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
     /// </summary>
     public int LatencyBudgetMs { get; set; } = 3000;
 
+    /// <summary>
+    /// When true (default), inputs that are clearly non-prose (URLs, paths,
+    /// emails, code, or symbol/number-only snippets) skip the model entirely.
+    /// Dictionary-free: it never tries to detect typos, so it never needs a
+    /// per-language word list - it only recognises things that should NOT be
+    /// "corrected".
+    /// </summary>
+    public bool CleanSkip { get; set; } = true;
+
+    private static bool LooksNonProse(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return true;
+
+        bool hasLetter = false;
+        foreach (var ch in s)
+            if (char.IsLetter(ch)) { hasLetter = true; break; }
+        if (!hasLetter) return true;   // emoji / punctuation / numbers only
+
+        // URLs, paths, emails, code: never "correct" these.
+        if (s.Contains("://") || s.StartsWith("/") || s.StartsWith("\\"))
+            return true;
+        if (s.Contains('@') && s.Contains('.') && !s.Contains(' '))
+            return true;               // email
+
+        return false;
+    }
+
     // Signatures that mean the model refused, preached, or added commentary
     // instead of transforming. Small instruct models (even abliterated ones)
     // occasionally do this; the app must not pass that noise through.
@@ -219,6 +246,10 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
 
         // Immediacy: skip the model for short messages.
         if (ShortSkipChars > 0 && input.Length <= ShortSkipChars)
+            return ProcessorResult.Passthrough(input);
+
+        // Clean-skip: non-prose (URLs, paths, code, symbols) is never "corrected".
+        if (CleanSkip && LooksNonProse(input))
             return ProcessorResult.Passthrough(input);
 
         string? raw = RunBounded(() => CallCorrect(input), ctx.Ct);
