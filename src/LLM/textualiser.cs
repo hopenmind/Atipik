@@ -67,6 +67,91 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
     /// </summary>
     public int ShortSkipChars { get; set; }
 
+    /// <summary>
+    /// Per-call latency budget in ms. If the model does not answer in time, the
+    /// call is abandoned and a deterministic fallback is used instead. The app
+    /// never makes the user wait indefinitely for an optional model.
+    /// 0 = no budget (wait forever). Default 3000.
+    /// </summary>
+    public int LatencyBudgetMs { get; set; } = 3000;
+
+    // Signatures that mean the model refused, preached, or added commentary
+    // instead of transforming. Small instruct models (even abliterated ones)
+    // occasionally do this; the app must not pass that noise through.
+    private static readonly string[] _refusalMarkers =
+    {
+        "i can't", "i cannot", "i can not", "i'm sorry", "i am sorry",
+        "i apologize", "as an ai", "as a language model", "i'm unable",
+        "i am unable", "i won't", "i will not", "i must decline",
+        "i must refuse", "i'm not able", "i'm afraid", "as an assistant",
+        "i don't feel comfortable", "cannot assist", "can't assist",
+        "however, i", "i should point out", "please note that i",
+        "i'd like to point out", "just so you know", "as a responsible"
+    };
+
+    /// <summary>
+    /// True when the model output looks like a refusal / lecture / commentary /
+    /// framing rather than a faithful transform. Mode 1 then keeps the user's
+    /// original text verbatim (the safe default); mode 2 falls back to the
+    /// deterministic Keywords pass.
+    /// </summary>
+    private static bool IsUnusable(string input, string output)
+    {
+        if (string.IsNullOrWhiteSpace(output)) return true;
+
+        string low = output.ToLowerInvariant();
+        foreach (var m in _refusalMarkers)
+            if (low.Contains(m)) return true;
+
+        var t = output.Trim();
+        // Wrapped entirely in quotes / guillemets -> the model added framing.
+        if (t.Length >= 2 &&
+            ((t[0] == '"' && t[^1] == '"') || (t[0] == '\u00AB' && t[^1] == '\u00BB')))
+            return true;
+
+        // Suspicious bloat: output much longer than input -> added commentary.
+        if (output.Length > input.Length * 1.5 + 40) return true;
+        // Suspicious collapse: output far shorter than input -> dropped content.
+        if (!string.IsNullOrEmpty(input) && output.Length < input.Length * 0.3) return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Run a native call with a latency budget. Returns null on timeout,
+    /// cancellation, or native fault - the caller then uses its deterministic
+    /// fallback. (The abandoned native call finishes in the background.)
+    /// </summary>
+    private string? RunBounded(Func<string?> fn, CancellationToken ct)
+    {
+        try
+        {
+            var task = Task.Run(fn, ct);
+            return LatencyBudgetMs > 0
+                ? task.WaitAsync(TimeSpan.FromMilliseconds(LatencyBudgetMs), ct).GetAwaiter().GetResult()
+                : task.GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Core.DebugLog.Write("Textualiser.RunBounded: fallback ({0})", ex.GetType().Name);
+            return null;
+        }
+    }
+
+    private string? CallCorrect(string input)
+    {
+        var buf = new byte[OutputBufferBytes];
+        int n = atypik_correct(input, buf, OutputBufferBytes);
+        return n > 0 ? Encoding.UTF8.GetString(buf, 0, n - 1).Trim() : null;
+    }
+
+    private string? CallRewrite(string input)
+    {
+        var buf = new byte[OutputBufferBytes];
+        int n = atypik_rewrite(input, buf, OutputBufferBytes);
+        return n > 0 ? Encoding.UTF8.GetString(buf, 0, n - 1).Trim() : null;
+    }
+
     // -- Init ------------------------------------------------------------------
 
     /// <summary>
@@ -105,17 +190,22 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
 
     /// <summary>
     /// Rewrite <paramref name="input"/> to remove aggressive or offensive tone.
-    /// Uses the loaded model with a built-in tone-smoothing prompt - stateless.
+    /// Returns null on timeout, refusal, or any unusable output so the caller
+    /// (frustration filter) can fall back to the deterministic Keywords pass.
+    /// Returns "***" when the model signals "nothing constructive to say".
     /// </summary>
-    public Task<string> RewriteAsync(string input, CancellationToken ct = default)
-        => Task.Run(() => Rewrite(input), ct);
+    public Task<string?> RewriteAsync(string input, CancellationToken ct = default)
+        => Task.Run(() => Rewrite(input, ct), ct);
 
-    private string Rewrite(string input)
+    private string? Rewrite(string input, CancellationToken ct)
     {
-        var outBuf  = new byte[OutputBufferBytes];
-        int written = atypik_rewrite(input, outBuf, OutputBufferBytes);
-        if (written <= 0) return input;
-        return Encoding.UTF8.GetString(outBuf, 0, written - 1).Trim();
+        string? raw = RunBounded(() => CallRewrite(input), ct);
+        if (raw is null) return null;
+
+        string t = raw.Trim();
+        if (t == "***" || string.IsNullOrWhiteSpace(t)) return "***";   // explicit block
+        if (IsUnusable(input, t)) return null;                            // refusal -> fallback
+        return t;
     }
 
     // -- Processing ------------------------------------------------------------
@@ -127,23 +217,21 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
     {
         string input  = ctx.CurrentText;
 
-        // Immediacy: skip the model for short messages - no perceptible benefit,
-        // and it removes the only per-message latency in the LLM path.
+        // Immediacy: skip the model for short messages.
         if (ShortSkipChars > 0 && input.Length <= ShortSkipChars)
             return ProcessorResult.Passthrough(input);
 
-        var    outBuf = new byte[OutputBufferBytes];
+        string? raw = RunBounded(() => CallCorrect(input), ctx.Ct);
 
-        int written = atypik_correct(input, outBuf, OutputBufferBytes);
+        // Mode 1 safe default = faithful copy. Never inject refusal noise,
+        // and never drop the user's text because the model misbehaved.
+        if (raw is null || IsUnusable(input, raw))
+        {
+            Core.DebugLog.Write("Textualiser.Correct: model unusable, faithful passthrough");
+            return ProcessorResult.Passthrough(input);
+        }
 
-        if (written <= 0)
-            return ProcessorResult.Fail(input, "Correction returned no output.");
-
-        string corrected = Encoding.UTF8.GetString(outBuf, 0, written - 1).Trim();
-
-        return string.IsNullOrEmpty(corrected)
-            ? ProcessorResult.Passthrough(input)
-            : ProcessorResult.Ok(corrected);
+        return ProcessorResult.Ok(raw);
     }
 
     // -- Cleanup ---------------------------------------------------------------

@@ -81,11 +81,16 @@ public sealed class FrustrationFilter : TextProcessorBase
         if (_textualiser is null || !_textualiser.IsAvailable)
             return ProcessorResult.Passthrough(ctx.CurrentText);
 
-        string rewritten = await _textualiser.RewriteAsync(ctx.CurrentText, ctx.Ct);
+        // null = the model timed out or refused. Fall back to the deterministic
+        // Keywords pass so mode 2 NEVER injects unfiltered vulgarity, even when
+        // the model misbehaves.
+        string? rewritten = await _textualiser.RewriteAsync(ctx.CurrentText, ctx.Ct);
 
-        // LLM signals "pure insults, nothing to say" - block the whole pipeline
-        if (string.IsNullOrWhiteSpace(rewritten) || rewritten.Trim() == "***")
+        if (rewritten == "***")
             return ProcessorResult.Block("Nothing constructive to say.");
+
+        if (rewritten is null)
+            return ApplyKeywords(ctx.CurrentText);
 
         return ProcessorResult.Ok(rewritten);
     }
