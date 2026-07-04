@@ -36,15 +36,42 @@ A'Tipik, paired with the azure of its publisher, Hope 'n Mind.
 | macOS | Not supported | Same reason; a port would be a separate project |
 
 Unzip anywhere and run `Atypik.exe`. No installer, no admin rights. The optional
-local model is **not** bundled: to enable it, drop a GGUF file at
-`src\LLM\textualiser.gguf` (or pick any path in Settings). The app is fully
-functional without it.
+correction model is **not** bundled (to keep the download small). To enable it,
+either drop a GGUF file at `src\LLM\textualiser.gguf`, or open **Settings >
+Textualiser** and click **Download the correction model** to fetch it from
+GitHub into the right folder. The app is fully functional without it.
 
 ---
 
-<div align="center">
-<img src="docs/pipeline.svg" width="780" alt="A'Tipik pipeline" />
-</div>
+## How it works
+
+```mermaid
+flowchart LR
+    accTitle: A'Tipik processing pipeline
+    accDescr: From capture to injection, every optional stage can fail safe to a pass-through, and nothing leaves the machine.
+
+    cap["Capture<br/>frame or selection"]
+    tone["Tone filter<br/>(optional, instant)"]
+    tex["Textualiser<br/>(optional, on-device)"]
+    kin["Kinetic injection<br/>human-like timing"]
+    tgt["Target field"]
+
+    cap --> tone --> tex --> kin --> tgt
+
+    classDef io fill:#1f1530,stroke:#5e1fa8,color:#ffffff
+    classDef opt fill:#170f26,stroke:#5e1fa8,stroke-dasharray:5 3,color:#cfc1de
+    classDef done fill:#170f26,stroke:#45d6c5,color:#ffffff
+
+    class cap,tgt io
+    class tone,tex opt
+    class kin done
+```
+
+The dashed stages are optional and fail safe: if a stage is off or errors, the
+text passes through unchanged. The pipeline never breaks on the model. Nothing
+leaves the machine.
+
+---
 
 ## Why
 
