@@ -264,6 +264,44 @@ public partial class SettingsWindow : Window
             ModelPathBox.Text = dlg.FileName;
     }
 
+    private bool _downloading;
+
+    private async void OnDownloadModel(object sender, RoutedEventArgs e)
+    {
+        if (_downloading) return;
+        _downloading = true;
+        DownloadModelBtn.IsEnabled = false;
+
+        string dest = string.IsNullOrWhiteSpace(ModelPathBox.Text)
+            ? System.IO.Path.GetFullPath("src/LLM/textualiser.gguf")
+            : ModelPathBox.Text.Trim();
+
+        DownloadStatus.Text = "Downloading...";
+        var progress = new Progress<int?>(p =>
+            DownloadStatus.Text = p is null ? "Downloading..." : $"Downloading {p}%");
+
+        try
+        {
+            await System.Threading.Tasks.Task.Run(() =>
+                Core.ModelDownloader.DownloadAsync(
+                    Core.ModelDownloader.GetUrl(), dest, (IProgress<int?>)progress).Wait());
+
+            ModelPathBox.Text = dest;
+            TextualiserCheck.IsChecked = true;
+            UpdateTextualiserDependents(true, animate: true);
+            DownloadStatus.Text = "Downloaded";
+        }
+        catch (Exception ex)
+        {
+            DownloadStatus.Text = "Failed: " + ex.Message;
+        }
+        finally
+        {
+            DownloadModelBtn.IsEnabled = true;
+            _downloading = false;
+        }
+    }
+
     private void OnTypoRateChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (TypoRateValue is null) return;  // guard: fired before InitializeComponent completes

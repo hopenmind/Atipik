@@ -95,6 +95,30 @@
                   Click="OnBrowseModel"/>
         </Grid>
 
+        <!-- Download the model from GitHub on demand -->
+        <Grid Margin="0,0,0,6">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <Button x:Name="DownloadModelBtn"
+                  Grid.Column="0"
+                  Content="Download the correction model"
+                  HorizontalAlignment="Left"
+                  Padding="10,5"
+                  Background="{StaticResource BrBgCard}"
+                  Foreground="{StaticResource BrAccentTeal}"
+                  BorderBrush="{StaticResource BrBorderBrand}"
+                  BorderThickness="1" Cursor="Hand"
+                  Click="OnDownloadModel"/>
+          <TextBlock x:Name="DownloadStatus"
+                     Grid.Column="1"
+                     VerticalAlignment="Center"
+                     FontSize="10"
+                     Foreground="{StaticResource BrTextMuted}"
+                     Margin="10,0,0,0"/>
+        </Grid>
+
         <!--  Immediacy: short replies bypass the model  -->
         <Grid x:Name="ShortSkipRow" Margin="0,2,0,2">
           <Grid.ColumnDefinitions>
