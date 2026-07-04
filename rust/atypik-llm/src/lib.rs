@@ -174,6 +174,18 @@ fn build_mode(
     }
     ctx.decode(&mut batch)?;
 
+    // Warm-up: generate one throwaway token past the system prompt and rewind
+    // it. This JITs the kernels and primes the sampler so the first real call
+    // does not pay the cold-start cost. KV ends back at [0, sys_len).
+    {
+        let mut ws = LlamaSampler::chain_simple([LlamaSampler::temp(0.1), LlamaSampler::greedy()]);
+        let warm = ws.sample(&ctx, (n - 1) as i32);
+        let mut wb = LlamaBatch::new(1, 1);
+        let _ = wb.add(warm, n as i32, &[0], true);
+        let _ = ctx.decode(&mut wb);
+        let _ = ctx.clear_kv_cache_seq(Some(0), Some(n as u32), None);
+    }
+
     Ok(Mode {
         ctx,
         system: system.to_string(),
