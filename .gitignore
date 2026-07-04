@@ -53,3 +53,7 @@ Desktop.ini
 *.pfx
 *.snk
 .env
+
+# ---------- strays ----------
+*.obj
+LEAN-CTX.md
