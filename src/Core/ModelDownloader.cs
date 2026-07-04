@@ -14,11 +14,12 @@ namespace Atypik.Core;
 public static class ModelDownloader
 {
     /// <summary>
-    /// Default release-asset URL. Replace OWNER/REPO with the actual GitHub
-    /// location, or override at runtime via the <c>model_url</c> preference.
+    /// Release-asset URL. The model is published as a GitHub release asset
+    /// (tag "model"), NOT committed (it is large). Override at runtime via the
+    /// <c>model_url</c> preference if you host it elsewhere.
     /// </summary>
     public const string DefaultUrl =
-        "https://github.com/OWNER/REPO/releases/download/model/textualiser.gguf";
+        "https://github.com/hopenmind/Atipik/releases/download/model/textualiser.gguf";
 
     /// <summary>The effective URL (pref override, else the default).</summary>
     public static string GetUrl()
