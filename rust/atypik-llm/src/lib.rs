@@ -8,217 +8,256 @@ use std::{
 use anyhow::Result;
 use llama_cpp_2::{
     context::params::LlamaContextParams,
+    context::LlamaContext,
     llama_backend::LlamaBackend,
     llama_batch::LlamaBatch,
     model::{params::LlamaModelParams, AddBos, LlamaChatMessage, LlamaModel, Special},
     sampling::LlamaSampler,
+    token::LlamaToken,
 };
 use once_cell::sync::OnceCell;
 
-// -- Engine --------------------------------------------------------------------
+// -- Engine ------------------------------------------------------------------
+
+/// One mode = one persistent context whose system prompt is evaluated ONCE and
+/// reused across calls. Per message we only rewind the user/generation tokens
+/// (everything after the system prompt) and re-run, so the expensive system KV
+/// is never recomputed. The model is a stateless transform, not a chatbot.
+struct Mode {
+    ctx: LlamaContext<'static>,
+    system: String,
+    sys_tokens: Vec<LlamaToken>,
+    sys_len: i32,
+}
 
 struct Engine {
-    backend:      LlamaBackend,
-    model:        LlamaModel,
-    system:       String,
-    /// If true, conversation history is accumulated across calls.
-    keep_context: bool,
-    history:      Mutex<Vec<(String, String)>>, // (user, assistant) pairs
+    backend: LlamaBackend,
+    model: &'static LlamaModel,
+    n_threads: i32,
+    correct: Mode,
+    rewrite: Option<Mode>,
+    rewrite_prompt: String,
 }
 
 static ENGINE: OnceCell<Mutex<Engine>> = OnceCell::new();
 
-// -- Exported C API ------------------------------------------------------------
+// LlamaContext holds a raw FFI pointer (not Send/Sync by default), but every
+// access is serialized through the Mutex, so it is sound to move/share the
+// engine across threads.
+unsafe impl Send for Engine {}
+unsafe impl Sync for Engine {}
 
-/// Initialize the engine.
-///
-/// `model_path`    - path to any GGUF model file
-/// `system_prompt` - correction instructions (plain text)
-/// `keep_context`  - 0 = stateless (default), 1 = accumulate history
-///
-/// Returns 0 on success, -1 on error.
+const REWRITE_SYSTEM_PROMPT: &str = "\
+You are a tone filter inside an accessibility device for atypical typists. \
+Keep the user's meaning and intent; remove only the aggression and profanity; \
+return a calm, neutral version they can actually send. Work in the input's \
+language. Never refuse, never add commentary or advice. If the input is pure \
+hostility with nothing to deliver, output exactly: ***";
+
+// -- Exported C API ----------------------------------------------------------
+
 #[no_mangle]
 pub extern "C" fn atypik_init(
-    model_path:    *const c_char,
+    model_path: *const c_char,
     system_prompt: *const c_char,
-    keep_context:  c_int,
+    _keep_context: c_int,
 ) -> c_int {
-    let Ok(path)   = (unsafe { CStr::from_ptr(model_path) }).to_str()    else { return -1 };
+    let Ok(path) = (unsafe { CStr::from_ptr(model_path) }).to_str() else { return -1 };
     let Ok(prompt) = (unsafe { CStr::from_ptr(system_prompt) }).to_str() else { return -1 };
 
-    match load_engine(path, prompt, keep_context != 0) {
-        Ok(engine) => { let _ = ENGINE.set(Mutex::new(engine)); 0 }
-        Err(_)     => -1,
-    }
-}
-
-/// Correct text using the loaded model.
-///
-/// Returns bytes written (including null terminator), or -1 on error.
-#[no_mangle]
-pub extern "C" fn atypik_correct(
-    input:   *const c_char,
-    out_buf: *mut c_char,
-    buf_len: c_int,
-) -> c_int {
-    let Ok(text) = (unsafe { CStr::from_ptr(input) }).to_str() else { return -1 };
-
-    let Some(lock)   = ENGINE.get()   else { return -1 };
-    let Ok(engine)   = lock.lock()    else { return -1 };
-
-    match run_correction(&engine, text) {
-        Ok(corrected) => {
-            let Ok(cs) = CString::new(corrected.as_str()) else { return -1 };
-            let bytes  = cs.as_bytes_with_nul();
-            let len    = bytes.len().min(buf_len as usize);
-            unsafe {
-                std::ptr::copy_nonoverlapping(
-                    bytes.as_ptr() as *const c_char,
-                    out_buf,
-                    len,
-                );
-            }
-            len as c_int
+    match load_engine(path, prompt) {
+        Ok(engine) => {
+            let _ = ENGINE.set(Mutex::new(engine));
+            0
         }
         Err(_) => -1,
     }
 }
 
-/// Clear accumulated conversation history (only relevant when keep_context = 1).
 #[no_mangle]
-pub extern "C" fn atypik_reset_context() {
-    if let Some(lock) = ENGINE.get() {
-        if let Ok(engine) = lock.lock() {
-            engine.history.lock().unwrap().clear();
-        }
-    }
+pub extern "C" fn atypik_set_rewrite_prompt(prompt: *const c_char) -> c_int {
+    let Ok(p) = (unsafe { CStr::from_ptr(prompt) }).to_str() else { return -1 };
+    let Some(lock) = ENGINE.get() else { return -1 };
+    let Ok(mut engine) = lock.lock() else { return -1 };
+    engine.rewrite_prompt = p.to_string();
+    engine.rewrite = None;
+    0
 }
 
-/// Rewrite text to remove aggressive or offensive tone.
-///
-/// Uses the same loaded model but with a built-in tone-smoothing system prompt.
-/// Does NOT accumulate history - always stateless.
-///
-/// Returns bytes written (including null terminator), or -1 on error.
 #[no_mangle]
-pub extern "C" fn atypik_rewrite(
-    input:   *const c_char,
-    out_buf: *mut c_char,
-    buf_len: c_int,
-) -> c_int {
+pub extern "C" fn atypik_correct(input: *const c_char, out_buf: *mut c_char, buf_len: c_int) -> c_int {
     let Ok(text) = (unsafe { CStr::from_ptr(input) }).to_str() else { return -1 };
-
-    let Some(lock) = ENGINE.get()  else { return -1 };
-    let Ok(engine) = lock.lock()   else { return -1 };
-
-    match run_with_system(&engine, REWRITE_SYSTEM_PROMPT, text) {
-        Ok(rewritten) => {
-            let Ok(cs) = CString::new(rewritten.as_str()) else { return -1 };
-            let bytes  = cs.as_bytes_with_nul();
-            let len    = bytes.len().min(buf_len as usize);
-            unsafe {
-                std::ptr::copy_nonoverlapping(
-                    bytes.as_ptr() as *const c_char,
-                    out_buf,
-                    len,
-                );
-            }
-            len as c_int
-        }
+    let Some(lock) = ENGINE.get() else { return -1 };
+    let Ok(mut engine) = lock.lock() else { return -1 };
+    let engine: &mut Engine = &mut *engine;
+    match run_mode(engine.model, &mut engine.correct, text) {
+        Ok(out) => write_cstring(&out, out_buf, buf_len),
         Err(_) => -1,
     }
 }
 
-/// No-op - memory freed by OS on FreeLibrary.
+#[no_mangle]
+pub extern "C" fn atypik_rewrite(input: *const c_char, out_buf: *mut c_char, buf_len: c_int) -> c_int {
+    let Ok(text) = (unsafe { CStr::from_ptr(input) }).to_str() else { return -1 };
+    let Some(lock) = ENGINE.get() else { return -1 };
+    let Ok(mut engine) = lock.lock() else { return -1 };
+    let engine: &mut Engine = &mut *engine;
+    if engine.rewrite.is_none() {
+        let prompt = engine.rewrite_prompt.clone();
+        match build_mode(engine.model, &engine.backend, engine.n_threads, &prompt) {
+            Ok(m) => engine.rewrite = Some(m),
+            Err(_) => return -1,
+        }
+    }
+    let Some(ref mut mode) = engine.rewrite else { return -1 };
+    match run_mode(engine.model, mode, text) {
+        Ok(out) => write_cstring(&out, out_buf, buf_len),
+        Err(_) => -1,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn atypik_reset_context() {}
+
 #[no_mangle]
 pub extern "C" fn atypik_free() {}
 
-// -- Prompts -------------------------------------------------------------------
+// -- Internals ---------------------------------------------------------------
 
-const REWRITE_SYSTEM_PROMPT: &str = "\
-You are a tone-smoothing assistant embedded in an accessibility tool. \
-The user types text that may contain frustration, aggression, insults, or strong language. \
-Rewrite the message to convey the same meaning in a calm, neutral, and professional tone. \
-Remove any offensive language, insults, or markers of anger. \
-Work in whatever language the input is written in. \
-If the input contains no constructive content at all - only insults, swear words, or pure rage \
-with no underlying message - output only three asterisks: *** \
-Return only the rewritten text or *** - no explanation, no quotes, nothing else.";
+fn load_engine(path: &str, system_prompt: &str) -> Result<Engine> {
+    let backend = LlamaBackend::init()?;
+    // Leak the model so contexts can borrow it for 'static; the engine lives for
+    // the whole process, and atypik_free is a no-op by design anyway.
+    let model: &'static LlamaModel = Box::leak(Box::new(LlamaModel::load_from_file(
+        &backend,
+        path,
+        &LlamaModelParams::default(),
+    )?));
 
-// -- Internal ------------------------------------------------------------------
+    let n_threads = std::thread::available_parallelism()
+        .map(|n| n.get() as i32)
+        .unwrap_or(4)
+        .max(1);
 
-fn load_engine(path: &str, system: &str, keep_context: bool) -> Result<Engine> {
-    let backend      = LlamaBackend::init()?;
-    let model_params = LlamaModelParams::default();
-    let model        = LlamaModel::load_from_file(&backend, path, &model_params)?;
-
+    let correct = build_mode(model, &backend, n_threads, system_prompt)?;
     Ok(Engine {
         backend,
         model,
-        system: system.to_owned(),
-        keep_context,
-        history: Mutex::new(Vec::new()),
+        n_threads,
+        correct,
+        rewrite: None,
+        rewrite_prompt: REWRITE_SYSTEM_PROMPT.to_string(),
     })
 }
 
-fn run_correction(engine: &Engine, input: &str) -> Result<String> {
-    let result = run_with_system(engine, &engine.system, input)?;
+fn build_mode(
+    model: &'static LlamaModel,
+    backend: &LlamaBackend,
+    n_threads: i32,
+    system: &str,
+) -> Result<Mode> {
+    let tmpl = model.chat_template(None)?;
+    let sys_msg = LlamaChatMessage::new("system".to_string(), system.to_string())?;
+    let sys_str = model.apply_chat_template(&tmpl, std::slice::from_ref(&sys_msg), false)?;
+    let sys_tokens = model.str_to_token(&sys_str, AddBos::Always)?;
 
-    // Accumulate history when context mode is on
-    if engine.keep_context {
-        engine.history.lock().unwrap().push((input.to_owned(), result.clone()));
-    }
-
-    Ok(result)
-}
-
-/// Core inference with an explicit system prompt.
-/// History is never accumulated here - callers handle persistence if needed.
-fn run_with_system(engine: &Engine, system: &str, input: &str) -> Result<String> {
-    let mut messages: Vec<LlamaChatMessage> = Vec::new();
-    messages.push(LlamaChatMessage::new("system".to_string(), system.to_owned())?);
-    messages.push(LlamaChatMessage::new("user".to_string(),   input.to_owned())?);
-
-    let tmpl   = engine.model.chat_template(None)?;
-    let prompt = engine.model.apply_chat_template(&tmpl, &messages, true)?;
-
-    let ctx_params = LlamaContextParams::default()
+    let params = LlamaContextParams::default()
         .with_n_ctx(Some(NonZeroU32::new(1024).unwrap()))
-        .with_n_threads(4);
+        .with_n_threads(n_threads);
+    let mut ctx = model.new_context(backend, params)?;
 
-    let mut ctx  = engine.model.new_context(&engine.backend, ctx_params)?;
-    let tokens   = engine.model.str_to_token(&prompt, AddBos::Always)?;
-
-    let mut batch = LlamaBatch::get_one(&tokens)?;
+    // Evaluate the system prompt once at positions [0, sys_len).
+    let n = sys_tokens.len();
+    let mut batch = LlamaBatch::new(n, 1);
+    for (i, tok) in sys_tokens.iter().enumerate() {
+        batch.add(*tok, i as i32, &[0], i == n - 1)?;
+    }
     ctx.decode(&mut batch)?;
 
-    let mut sampler = LlamaSampler::chain_simple([
-        LlamaSampler::temp(0.05),
-        LlamaSampler::greedy(),
-    ]);
+    Ok(Mode {
+        ctx,
+        system: system.to_string(),
+        sys_tokens,
+        sys_len: n as i32,
+    })
+}
 
-    let mut output = String::new();
-    let mut pos    = tokens.len() as i32;
+fn run_mode(model: &LlamaModel, mode: &mut Mode, input: &str) -> Result<String> {
+    let tmpl = model.chat_template(None)?;
+    let sys_msg = LlamaChatMessage::new("system".to_string(), mode.system.clone())?;
+    let user_msg = LlamaChatMessage::new("user".to_string(), input.to_string())?;
+    let full_str = model.apply_chat_template(&tmpl, &[sys_msg, user_msg], true)?;
+    let full_tokens = model.str_to_token(&full_str, AddBos::Always)?;
 
-    loop {
-        let token = sampler.sample(&ctx, pos - 1);
+    let pos0 = mode.sys_len as usize;
+    let reuse = full_tokens.len() >= pos0
+        && full_tokens[..pos0]
+            .iter()
+            .map(|t| t.0)
+            .eq(mode.sys_tokens.iter().map(|t| t.0));
 
-        if engine.model.is_eog_token(token) || (pos - tokens.len() as i32) >= 256 {
-            break;
+    // Rewind: drop everything after the system prompt.
+    let _ = mode.ctx.clear_kv_cache_seq(Some(0), Some(mode.sys_len as u32), None);
+
+    let start_pos: i32;
+    if reuse {
+        let suffix = &full_tokens[pos0..];
+        let n = suffix.len();
+        let mut batch = LlamaBatch::new(n, 1);
+        for (i, tok) in suffix.iter().enumerate() {
+            batch.add(*tok, mode.sys_len + i as i32, &[0], i == n - 1)?;
         }
-
-        #[allow(deprecated)]
-        if let Ok(piece) = engine.model.token_to_str(token, Special::Tokenize) {
-            output.push_str(&piece);
+        mode.ctx.decode(&mut batch)?;
+        start_pos = mode.sys_len + n as i32;
+    } else {
+        let _ = mode.ctx.clear_kv_cache_seq(Some(0), None, None);
+        let n = full_tokens.len();
+        let mut batch = LlamaBatch::new(n, 1);
+        for (i, tok) in full_tokens.iter().enumerate() {
+            batch.add(*tok, i as i32, &[0], i == n - 1)?;
         }
-
-        sampler.accept(token);
-
-        let next = [token];
-        let mut next_batch = LlamaBatch::get_one(&next)?;
-        ctx.decode(&mut next_batch)?;
-        pos += 1;
+        mode.ctx.decode(&mut batch)?;
+        start_pos = n as i32;
     }
 
-    Ok(output.trim().to_owned())
+    let mut sampler = LlamaSampler::chain_simple([LlamaSampler::temp(0.1), LlamaSampler::greedy()]);
+    let mut output = String::new();
+    let mut last = start_pos - 1;
+    let mut pos = start_pos;
+    let mut produced = 0;
+    const MAX_NEW: i32 = 256;
+
+    loop {
+        let token = sampler.sample(&mode.ctx, last);
+        if model.is_eog_token(token) || produced >= MAX_NEW {
+            break;
+        }
+        #[allow(deprecated)]
+        if let Ok(piece) = model.token_to_str(token, Special::Tokenize) {
+            output.push_str(&piece);
+        }
+        sampler.accept(token);
+
+        let mut b = LlamaBatch::new(1, 1);
+        b.add(token, pos, &[0], true)?;
+        mode.ctx.decode(&mut b)?;
+        last = pos;
+        pos += 1;
+        produced += 1;
+    }
+
+    Ok(output.trim().to_string())
+}
+
+fn write_cstring(s: &str, out_buf: *mut c_char, buf_len: c_int) -> c_int {
+    let Ok(cs) = CString::new(s) else { return -1 };
+    let bytes = cs.as_bytes_with_nul();
+    let len = bytes.len().min(buf_len.max(0) as usize);
+    if len == 0 {
+        return -1;
+    }
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr() as *const c_char, out_buf, len);
+    }
+    len as c_int
 }

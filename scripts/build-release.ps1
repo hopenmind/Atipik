@@ -30,8 +30,8 @@ $cargo = Get-Command cargo -ErrorAction SilentlyContinue
 $dllRel = "rust\atypik-llm\target\release\atypik_llm.dll"
 $haveDll = $false
 if ($cargo -and ($archs -contains "x64")) {
-    Write-Host "==> cargo found: building local LLM bridge (x64, this can take a while)" -ForegroundColor Cyan
-    & cargo build --release --manifest-path rust\atypik-llm\Cargo.toml
+    Write-Host "==> Building the local LLM bridge via build-llm-bridge.ps1" -ForegroundColor Cyan
+    & (Join-Path $PSScriptRoot "build-llm-bridge.ps1")
     $haveDll = (Test-Path $dllRel)
     if ($haveDll) { Write-Host "    bridge OK: $dllRel" -ForegroundColor Green }
 } else {

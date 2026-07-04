@@ -50,6 +50,10 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
     private static extern void atypik_reset_context();
 
     [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int atypik_set_rewrite_prompt(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt);
+
+    [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
     private static extern void atypik_free();
 
     // -- State -----------------------------------------------------------------
@@ -199,6 +203,16 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
                 "Failed to load model - check the file path and format.");
 
         _ready = true;
+
+        // Load the tone-rewrite prompt from its sibling file, if present, so
+        // mode 2 uses the same directive, few-shot prompt as mode 1.
+        string? dir = Path.GetDirectoryName(systemPromptPath);
+        string rewritePath = Path.Combine(dir ?? string.Empty, "rewrite_context.md");
+        if (File.Exists(rewritePath))
+        {
+            string rewritePrompt = File.ReadAllText(rewritePath, Encoding.UTF8);
+            atypik_set_rewrite_prompt(rewritePrompt);
+        }
     }
 
     /// <summary>Async wrapper - call once at startup to avoid blocking the UI.</summary>
