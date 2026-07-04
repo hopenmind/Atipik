@@ -12,7 +12,7 @@ namespace Atypik.LLM;
 /// Textualiser - model-agnostic correction module via P/Invoke into atypik_llm.dll.
 ///
 /// Works with any GGUF model that has a chat template embedded (most instruct models do).
-/// No HTTP, no ports, no subprocess. llama.cpp runs entirely in-process.
+/// No HTTP, no ports, no subprocess. The model runs entirely in-process.
 ///
 /// Build the DLL:
 ///   cd rust/atypik-llm && cargo build --release

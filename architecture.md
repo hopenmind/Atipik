@@ -32,7 +32,7 @@ User types in overlay (captured locally)
    Raw text buffer
           |
           v
-  Gemma-2B (local llama.cpp)
+  Local GGUF model (on-device inference)
   Kinetic reconstruction filter
   -> corrects motor artifacts only
   -> preserves voice, style, intent
@@ -97,19 +97,26 @@ Correction sequence timing:
 ```
 src/
 +-- Core/
-|   +-- Pipeline.cs         main async pipeline
-|   +-- ILlmClient.cs       LLM backend contract
+|   +-- Pipeline.cs / ModularPipeline.cs   async processing pipeline
+|   +-- AppBuilder.cs                       fluent pipeline wiring
+|   +-- AppPrefs.cs                         persisted preferences
+|   +-- GlobalHotkey.cs / WinNative.cs      Win32 interop (hotkeys, input)
+|   +-- TrayController.cs                   system tray (pure Shell_NotifyIcon)
 +-- KineticEngine/
-|   +-- WeibullSampler.cs   Weibull IKT distribution
-|   +-- BigramTable.cs      per-bigram λ computation
-|   +-- LayoutMatrix.cs     2D keyboard layout + adjacency
-|   +-- KineticObfuscator.cs  SendInput orchestration
+|   +-- WeibullSampler.cs                   Weibull IKT distribution
+|   +-- BigramTable.cs                      per-bigram lambda computation
+|   +-- LayoutMatrix.cs + LayoutDetector    2D layout + auto layout detection
+|   +-- KineticObfuscator.cs                SendInput orchestration
 +-- LLM/
-|   +-- GemmaClient.cs      llama.cpp bridge (TODO)
-|   +-- gemma_context.md    system prompt
+|   +-- textualiser.cs                      on-device model bridge (P/Invoke)
+|   +-- context.md / rewrite_context.md     directive system prompts (mode 1 / 2)
++-- Modules/
+|   +-- FrustrationFilter.cs                tone filter (keywords / rewrite)
 +-- Overlay/
-    +-- OverlayWindow.xaml   transparent always-on-top capture (TODO)
-    +-- BoundingBoxTool.cs  frame drawing tool (TODO)
+|   +-- OverlayWindow.xaml                  transparent capture overlay
+|   +-- BoundingBoxTool.xaml                frame drawing tool
++-- Windows/                                Settings / About / Extensions
++-- i18n/Loc.cs                             English string table
 ```
 
 ---

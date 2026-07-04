@@ -133,7 +133,7 @@ changing a word. Nothing is stored, nothing is sent to a server.
 
 - No network requests. Ever.
 - No telemetry collected.
-- Optional LLM inference is local (GGUF via llama.cpp). Input never leaves the
+- Optional LLM inference is local (a GGUF model, on-device). Input never leaves the
   machine.
 
 ## Contributing

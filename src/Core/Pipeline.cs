@@ -50,7 +50,7 @@ public sealed class Pipeline : IAsyncDisposable
 
 /// <summary>
 /// Contract for the local LLM correction backend.
-/// Implemented by GemmaClient (llama.cpp via P/Invoke or named pipe).
+/// Implemented by the on-device model client (P/Invoke into the local engine).
 /// </summary>
 public interface ILlmClient
 {
