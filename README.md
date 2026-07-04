@@ -23,8 +23,6 @@ autism spectrum, ADHD, HPI, dyspraxia, sensory processing differences. It runs
 fully **without** any local model. The optional Textualiser (local LLM) only
 engages when you turn it on.
 
-The brand identity comes straight from the application logo: a violet mark for
-A'Tipik, paired with the azure of its publisher, Hope 'n Mind.
 
 ## Supported platforms and downloads
 
