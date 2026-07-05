@@ -13,15 +13,40 @@
 
 </div>
 
-A'Tipik sits between the keyboard and the screen. When text is ready to be sent,
-it types it into the target application with a timing pattern that matches what
-behavioural telemetry systems expect, **without changing a single word**. The
-person's voice stays intact. The invisible penalty disappears.
+A'Tipik is a small companion that types for you.
 
-It is built for people whose natural typing signature is statistically atypical:
-autism spectrum, ADHD, HPI, dyspraxia, sensory processing differences. It runs
-fully **without** any local model. The optional Textualiser (local LLM) only
-engages when you turn it on.
+You write your message, exactly as you want it. A'Tipik then types it into any
+window, in your place, the way a person would. Your words are never changed.
+Your voice stays yours.
+
+Why does that matter? Because many websites and apps do not only read what you
+type. They also watch how you type, and they quietly score you on it. Those
+systems learned what "normal" typing looks like, and anything different can be
+treated as suspicious. If the way your hands and mind work makes you type a
+little differently, in bursts, with pauses, with a rhythm that is uniquely
+yours, you may be slowed down, questioned, or held back, for no good reason.
+Not because of anything you did wrong. Simply because you are not the average.
+
+A'Tipik takes that unfairness away. It types your words with the kind of rhythm
+those systems expect, so you are judged by what you say, not by how your fingers
+say it. Nothing about you is corrected. Only the invisible obstacle is.
+
+It also carries a gentle brake for the hard moments. When frustration builds up,
+you can let it out freely, in writing. Then, before the message leaves, A'Tipik
+can soften the tone and keep the meaning. The relief of writing it stays. The
+regret of sending it does not.
+
+Everything happens on your own computer. Nothing is sent anywhere. There is no
+account, no tracking, no one watching. Your words never leave your machine.
+
+This tool is built with atypical people in mind first (autism, ADHD, dyspraxia,
+high potential, vision differences), and for anyone who has felt that the
+machine was measuring them against a standard they were never told about. It is
+a tool for fairness and dignity. Nothing more, nothing less.
+
+The violet mark of A'Tipik is paired with the azure of its publisher, Hope 'n
+Mind. The app runs fully on its own; the optional correction model only steps in
+if you choose to turn it on.
 
 
 ## Supported platforms and downloads
