@@ -44,9 +44,8 @@ high potential, vision differences), and for anyone who has felt that the
 machine was measuring them against a standard they were never told about. It is
 a tool for fairness and dignity. Nothing more, nothing less.
 
-The violet mark of A'Tipik is paired with the azure of its publisher, Hope 'n
-Mind. The app runs fully on its own; the optional correction model only steps in
-if you choose to turn it on.
+The app runs fully on its own. The optional correction model only steps in if
+you choose to turn it on.
 
 
 ## Supported platforms and downloads
@@ -123,7 +122,6 @@ legitimate) but smooths or blocks the transmission at the action boundary.
 - **Short-text skip.** With the model on, quick replies bypass inference and
   inject instantly.
 - **System tray.** Closing the window parks A'Tipik; it stays a shortcut away.
-- **Two languages.** English and French, switchable in Settings.
 - **Privacy first.** No network requests. No telemetry. All optional LLM
   inference is local. Input never leaves the machine.
 
@@ -131,8 +129,8 @@ legitimate) but smooths or blocks the transmission at the action boundary.
 
 1. Download `Atypik-win-x64.zip` from the latest [Release](../../releases).
 2. Unzip anywhere and run `Atypik.exe`. No installer, no admin rights.
-3. Optional: to enable the Textualiser, drop a GGUF model at
-   `src\LLM\textualiser.gguf` (or pick any path in Settings).
+3. Optional: open Settings and click **Download the correction model** to fetch
+   it from GitHub (or drop a GGUF file at `src\LLM\textualiser.gguf`).
 
 ## Build from source
 
@@ -140,7 +138,7 @@ Prerequisites: [.NET 8 SDK](https://dotnet.microsoft.com/download) (Windows).
 Rust is only needed to rebuild the optional local LLM bridge.
 
 ```pwsh
-git clone https://github.com/<your-org>/A-typik.git
+git clone https://github.com/hopenmind/Atipik.git
 cd A-typik
 dotnet build -c Release
 # optional: rebuild the local LLM bridge (Rust + CMake + MSVC)
@@ -197,6 +195,30 @@ see [SECURITY.md](SECURITY.md).
 Dual licensed. Personal, academic, and non-commercial use under Apache 2.0;
 commercial use requires a separate license from Hope 'n Mind SASU. See
 [LICENSE](LICENSE) for the full terms.
+
+## The technique, and what is at stake
+
+### How you are measured today
+Many websites and apps do not only read what you type. They record how you type: the time between keys, the rhythm of bursts and pauses, the small hesitations and corrections, how you move the mouse, how you scroll. Together this is called behavioural biometrics, or keystroke dynamics, and it shows up in concrete places:
+
+- The "I'm not a robot" checks that score your mouse movements and typing, not just the checkbox you click.
+- Login and payment screens that quietly run a risk score before letting you in.
+- "Step-up" or continuous authentication that re-checks, mid-session, whether the person at the keyboard is still you.
+- Exam and learning platforms that score engagement and "authenticity" from how you behave.
+
+It runs invisibly. You are almost never told it is happening, and there is usually no way to turn it off.
+
+These models were trained on the average of many people. So they treat the average as normal, and anything that deviates as suspicious. For someone whose natural rhythm is shaped by autism, ADHD, dyspraxia, a vision difference, or simply a different way of moving through the world, that deviation is not a threat. It is just how they are. The system does not know the difference, and so it flags, slows, or blocks them.
+
+### The deeper risk: normalizing human rhythm
+The danger is bigger than false alarms. As more of public life (work, school, healthcare, money, access) sits behind systems that quietly demand a normal rhythm, conformity stops being a choice and becomes the price of entry. People learn, without anyone saying so, to type, move, and react like everyone else, just to be allowed in. The burden flips: it is no longer the systems that must adapt to the diversity of real people; it is the people who must adapt, in secret, to the average. That erodes three things at once: neurodiversity (the right to a different rhythm), privacy (constant, silent measurement), and ultimately human sovereignty, the idea that a person is the source of their own behaviour, and not an input to be shaped.
+
+### Where A'Tipik stands
+This is not rebellion, and it is not a rejection of classification itself. Classifying behaviour has a legitimate purpose: catching fraud, bots, and abuse. The problem is the starting assumption.
+
+Today these algorithms begin from the postulate that everyone is neurotypical, and treat any deviation as the exception to investigate. A'Tipik argues for the inverse: the humane default is to assume the operator may be neuro-atypical, and to build diverse rhythms and ways of thinking into the model as a first-class component from the start. The profile should then refine, case by case, toward a neurotypical classification, to confirm or refute that hypothesis, never the other way around. Difference should be the prior, not the anomaly.
+
+While the industry refines its defaults, A'Tipik is a practical stopgap: it lets a real person keep their own rhythm and still pass through, today, without waiting for the systems to change. The goal is not to defeat classification, but to push it toward one that begins by accepting the full spectrum of how human minds work, and only then narrows. Ideally this tool becomes unnecessary. Until then, it restores a measure of fairness.
 
 ---
 
