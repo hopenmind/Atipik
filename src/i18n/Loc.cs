@@ -113,6 +113,11 @@ public static class Loc
             ["overlay.cancel"]     = "Cancel",
             ["overlay.inject"]     = "Inject",
 
+            // Output-mode toast (Ctrl+Shift+M cycles Off / Correction / Poetry)
+            ["toast.mode_off"]         = "Mode: Off  (text passes through)",
+            ["toast.mode_correction"]  = "Mode: Correction",
+            ["toast.mode_poetry"]      = "Mode: Poetry",
+
             // About
             ["about.title"]              = "About - A-typik",
             ["about.title.license"]      = "License & Terms - A-typik",

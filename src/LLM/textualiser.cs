@@ -79,6 +79,12 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
     /// </summary>
     public int LatencyBudgetMs { get; set; } = 3000;
 
+    // Style prompts for the rewrite engine (mode 2). Swapped at runtime when the
+    // user cycles to Poetry and back. Null = not loaded / not available.
+    private string? _rewritePrompt;
+    private string? _poetryPrompt;
+    private bool _poetryActive;
+
     /// <summary>
     /// When true (default), inputs that are clearly non-prose (URLs, paths,
     /// emails, code, or symbol/number-only snippets) skip the model entirely.
@@ -126,7 +132,7 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
     /// original text verbatim (the safe default); mode 2 falls back to the
     /// deterministic Keywords pass.
     /// </summary>
-    private static bool IsUnusable(string input, string output)
+    private static bool IsUnusable(string input, string output, double expansion = 1.5)
     {
         if (string.IsNullOrWhiteSpace(output)) return true;
 
@@ -140,8 +146,9 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
             ((t[0] == '"' && t[^1] == '"') || (t[0] == '\u00AB' && t[^1] == '\u00BB')))
             return true;
 
-        // Suspicious bloat: output much longer than input -> added commentary.
-        if (output.Length > input.Length * 1.5 + 40) return true;
+        // Suspicious bloat: output much longer than allowed -> added commentary.
+        // Poetry legitimately expands more, so the caller raises the factor.
+        if (output.Length > input.Length * expansion + 40) return true;
         // Suspicious collapse: output far shorter than input -> dropped content.
         if (!string.IsNullOrEmpty(input) && output.Length < input.Length * 0.3) return true;
 
@@ -190,13 +197,14 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
     /// <paramref name="keepContext"/> - if true, conversation history is
     /// accumulated across corrections (user-configurable, off by default).
     /// </summary>
-    public void Initialize(string modelPath, string systemPromptPath, bool keepContext = false)
+    public void Initialize(string modelPath, bool keepContext = false)
     {
         if (!File.Exists(modelPath))
             throw new FileNotFoundException("Model file not found.", modelPath);
 
-        string prompt = File.ReadAllText(systemPromptPath, Encoding.UTF8);
-        int    result = atypik_init(modelPath, prompt, keepContext ? 1 : 0);
+        string prompt = ReadPrompt("context.md")
+            ?? throw new InvalidOperationException("Embedded system prompt (context.md) not found.");
+        int result = atypik_init(modelPath, prompt, keepContext ? 1 : 0);
 
         if (result != 0)
             throw new InvalidOperationException(
@@ -204,24 +212,51 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
 
         _ready = true;
 
-        // Load the tone-rewrite prompt from its sibling file, if present, so
-        // mode 2 uses the same directive, few-shot prompt as mode 1.
-        string? dir = Path.GetDirectoryName(systemPromptPath);
-        string rewritePath = Path.Combine(dir ?? string.Empty, "rewrite_context.md");
-        if (File.Exists(rewritePath))
-        {
-            string rewritePrompt = File.ReadAllText(rewritePath, Encoding.UTF8);
-            atypik_set_rewrite_prompt(rewritePrompt);
-        }
+        // Style prompts (tone-rewrite + poetry), embedded so they ship with the
+        // exe; a src/LLM sibling is a dev-only fallback.
+        _rewritePrompt = ReadPrompt("rewrite_context.md");
+        if (_rewritePrompt is not null) atypik_set_rewrite_prompt(_rewritePrompt);
+
+        _poetryPrompt = ReadPrompt("poetry_context.md");
     }
+
+    // Read a prompt from the embedded resources first (so a single-file or
+    // installed build carries it), then a src/LLM sibling for dev runs.
+    private static string? ReadPrompt(string name)
+    {
+        using (var s = typeof(Textualiser).Assembly.GetManifestResourceStream(name))
+            if (s is not null)
+            {
+                using var r = new StreamReader(s, Encoding.UTF8);
+                return r.ReadToEnd();
+            }
+        string dev = Path.GetFullPath(Path.Combine("src", "LLM", name));
+        return File.Exists(dev) ? File.ReadAllText(dev, Encoding.UTF8) : null;
+    }
+
+    /// <summary>
+    /// Swap the rewrite engine's system prompt between tone-smoothing and
+    /// poetry. Triggers a lazy rebuild of the rewrite KV on the next call.
+    /// No-op if the requested prompt is not loaded.
+    /// </summary>
+    public void UsePoetryPrompt(bool poetry)
+    {
+        if (poetry == _poetryActive) return;
+        string? prompt = poetry ? _poetryPrompt : _rewritePrompt;
+        if (poetry && prompt is null) return;   // poetry prompt not available
+        if (prompt is not null) atypik_set_rewrite_prompt(prompt);
+        _poetryActive = poetry;
+    }
+
+    /// <summary>Whether the poetry prompt is available (file was found at init).</summary>
+    public bool HasPoetryPrompt => _poetryPrompt is not null;
 
     /// <summary>Async wrapper - call once at startup to avoid blocking the UI.</summary>
     public Task InitializeAsync(
         string modelPath,
-        string systemPromptPath,
         bool keepContext = false,
         CancellationToken ct = default)
-        => Task.Run(() => Initialize(modelPath, systemPromptPath, keepContext), ct);
+        => Task.Run(() => Initialize(modelPath, keepContext), ct);
 
     /// <summary>
     /// Clear accumulated conversation history.
@@ -235,17 +270,17 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
     /// (frustration filter) can fall back to the deterministic Keywords pass.
     /// Returns "***" when the model signals "nothing constructive to say".
     /// </summary>
-    public Task<string?> RewriteAsync(string input, CancellationToken ct = default)
-        => Task.Run(() => Rewrite(input, ct), ct);
+    public Task<string?> RewriteAsync(string input, CancellationToken ct = default, double expansion = 1.5)
+        => Task.Run(() => Rewrite(input, ct, expansion), ct);
 
-    private string? Rewrite(string input, CancellationToken ct)
+    private string? Rewrite(string input, CancellationToken ct, double expansion)
     {
         string? raw = RunBounded(() => CallRewrite(input), ct);
         if (raw is null) return null;
 
         string t = raw.Trim();
         if (t == "***" || string.IsNullOrWhiteSpace(t)) return "***";   // explicit block
-        if (IsUnusable(input, t)) return null;                            // refusal -> fallback
+        if (IsUnusable(input, t, expansion)) return null;                // refusal -> fallback
         return t;
     }
 
@@ -256,26 +291,40 @@ public sealed class Textualiser : TextProcessorBase, IDisposable
 
     private ProcessorResult Correct(ProcessorContext ctx)
     {
-        string input  = ctx.CurrentText;
+        string input = ctx.CurrentText;
+        var    mode  = Core.ModeState.Current;
 
-        // Immediacy: skip the model for short messages.
-        if (ShortSkipChars > 0 && input.Length <= ShortSkipChars)
+        // Off: the optional model does nothing at send time.
+        if (mode == Core.OutputMode.Off)
             return ProcessorResult.Passthrough(input);
 
-        // Clean-skip: non-prose (URLs, paths, code, symbols) is never "corrected".
+        // Immediacy: short and non-prose inputs skip the model in every mode.
+        if (ShortSkipChars > 0 && input.Length <= ShortSkipChars)
+            return ProcessorResult.Passthrough(input);
         if (CleanSkip && LooksNonProse(input))
             return ProcessorResult.Passthrough(input);
 
-        string? raw = RunBounded(() => CallCorrect(input), ctx.Ct);
+        // Poetry: rewrite as poetic prose. The poetry prompt is already active on
+        // the rewrite path (UsePoetryPrompt was applied when the mode was chosen).
+        // Poetic prose legitimately expands, so allow a wider factor; on refusal,
+        // timeout or unusable output, fall back to the user's own text.
+        if (mode == Core.OutputMode.Poetry)
+        {
+            string? poetic = _poetryActive ? RunBounded(() => CallRewrite(input), ctx.Ct) : null;
+            if (poetic is null) return ProcessorResult.Passthrough(input);
+            string p = poetic.Trim();
+            if (p == "***" || string.IsNullOrWhiteSpace(p) || IsUnusable(input, p, expansion: 4.0))
+                return ProcessorResult.Passthrough(input);
+            return ProcessorResult.Ok(p);
+        }
 
-        // Mode 1 safe default = faithful copy. Never inject refusal noise,
-        // and never drop the user's text because the model misbehaved.
+        // Correction (default): fix motor-typing artifacts, keep the voice.
+        string? raw = RunBounded(() => CallCorrect(input), ctx.Ct);
         if (raw is null || IsUnusable(input, raw))
         {
             Core.DebugLog.Write("Textualiser.Correct: model unusable, faithful passthrough");
             return ProcessorResult.Passthrough(input);
         }
-
         return ProcessorResult.Ok(raw);
     }
 

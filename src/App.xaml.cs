@@ -29,6 +29,7 @@ public partial class App : Application
     // -- Global hotkey + tray --------------------------------------------------
     private GlobalHotkey?   _hotkey;
     private GlobalHotkey?   _hotkeyCopy;   // Ctrl+Alt+C - grab selection
+    private GlobalHotkey?   _hotkeyMode;   // Ctrl+Shift+M - cycle output mode
     private TrayController? _tray;
     private bool            _shownHotkeyHint;
     private bool            _exiting;   // true only when quitting via tray/menu
@@ -141,6 +142,9 @@ public partial class App : Application
         DebugLog.Write("App startup - layout={0} weibullK={1} typoRate={2}%",
             LoadLayout(), LoadWeibullK(), LoadTypoRatePercent());
 
+        // Restore the last output mode (Off / Correction / Poetry).
+        ModeState.Set(ModeState.LoadPersisted());
+
         _mainWindow = new MainWindow();
         MainWindow = _mainWindow;
 
@@ -179,7 +183,7 @@ public partial class App : Application
 
             bool   textualiserOn   = LoadTextualiserEnabled();
             var    frustrationMode = LoadFrustrationMode();
-            string modelPath       = Path.GetFullPath("src/LLM/textualiser.gguf");
+            string modelPath       = Core.AppPrefs.ResolveModelPath();
             var    layout          = LoadLayout();
             double weibullK        = LoadWeibullK();
             double typoRate        = LoadTypoRatePercent();
@@ -265,9 +269,7 @@ public partial class App : Application
         // If caller passes empty/placeholder path, use the persisted saved path
         string resolvedPath = !string.IsNullOrWhiteSpace(modelPath)
             ? modelPath
-            : File.Exists(ModelPathFile)
-                ? File.ReadAllText(ModelPathFile).Trim()
-                : Path.GetFullPath("src/LLM/textualiser.gguf");
+            : Core.AppPrefs.ResolveModelPath();
 
         DebugLog.Write("SetTextualiserEnabled: enabled={0} path={1}", enabled, resolvedPath);
 
@@ -377,6 +379,18 @@ public partial class App : Application
                 DebugLog.Write("GlobalHotkey: Ctrl+Alt+C registration refused");
             }
 
+            // Ctrl+Shift+M - cycle output mode (Off / Correction / Poetry).
+            _hotkeyMode = new GlobalHotkey(hwnd, id: 3);
+            if (_hotkeyMode.Register(GlobalHotkey.MOD_CONTROL | GlobalHotkey.MOD_SHIFT, 0x4D))
+            {
+                _hotkeyMode.Pressed += OnModeHotkey;
+                DebugLog.Write("GlobalHotkey: Ctrl+Shift+M registered");
+            }
+            else
+            {
+                DebugLog.Write("GlobalHotkey: Ctrl+Shift+M registration refused");
+            }
+
             if (!_shownHotkeyHint)
             {
                 _shownHotkeyHint = true;
@@ -399,6 +413,16 @@ public partial class App : Application
     {
         DebugLog.Write("GlobalHotkey: Ctrl+Alt+C - selection grab");
         _mainWindow?.CaptureSelection();
+    }
+
+    private void OnModeHotkey()
+    {
+        var mode = ModeState.Cycle();
+        ModeState.Persist();
+        // Swap the rewrite engine prompt for poetry, and back for the rest.
+        _pipeline?.GetModule<LLM.Textualiser>()?.UsePoetryPrompt(mode == OutputMode.Poetry);
+        Overlay.ModeToast.ShowFor(mode);
+        DebugLog.Write("GlobalHotkey: Ctrl+Shift+M -> {0}", mode);
     }
 
     // -- Tray status -----------------------------------------------------------
@@ -469,6 +493,7 @@ public partial class App : Application
 
         _hotkey?.Dispose();
         _hotkeyCopy?.Dispose();
+        _hotkeyMode?.Dispose();
         _tray?.Dispose();
 
         _showSignal?.Dispose();

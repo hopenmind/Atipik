@@ -45,6 +45,14 @@
     <Resource Include="assets\**" />
   </ItemGroup>
 
+  <!-- LLM prompt files embedded as resources, so a single-file or installed exe
+       carries them and never depends on a src/LLM folder at runtime. -->
+  <ItemGroup>
+    <EmbeddedResource Include="src\LLM\context.md"><LogicalName>context.md</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="src\LLM\rewrite_context.md"><LogicalName>rewrite_context.md</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="src\LLM\poetry_context.md"><LogicalName>poetry_context.md</LogicalName></EmbeddedResource>
+  </ItemGroup>
+
   <!--  Rust DLL - copied to output dir so dev builds work, bundled on publish  -->
   <ItemGroup>
     <None Include="rust\atypik-llm\target\release\atypik_llm.dll"

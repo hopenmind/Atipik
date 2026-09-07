@@ -20,6 +20,30 @@ public static class AppPrefs
     public static readonly string Dir =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Atypik");
 
+    // Large runtime data (the optional correction model) lives in LOCALAPPDATA,
+    // not the roaming prefs dir, so a big GGUF never bloats a roaming profile.
+    public static readonly string DataDir =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Atypik");
+
+    /// <summary>Canonical location the app downloads and loads the model from.</summary>
+    public static string ModelFile => Path.Combine(DataDir, "textualiser.gguf");
+
+    /// <summary>
+    /// The model path to use, in order: an explicit saved path that exists, the
+    /// downloaded model in LOCALAPPDATA, a developer drop-in under the source
+    /// tree, else the LOCALAPPDATA target (where the downloader will place it).
+    /// Never returns a raw "src/LLM/..." path unless that dev file actually exists.
+    /// </summary>
+    public static string ResolveModelPath()
+    {
+        string saved = Get("model_path", "");
+        if (!string.IsNullOrWhiteSpace(saved) && File.Exists(saved)) return saved;
+        if (File.Exists(ModelFile)) return ModelFile;
+        string dev = Path.GetFullPath(Path.Combine("src", "LLM", "textualiser.gguf"));
+        if (File.Exists(dev)) return dev;
+        return ModelFile;
+    }
+
     // -- Win32: validate that a saved HWND is still a live window --------------
     [DllImport("user32.dll")]
     private static extern bool IsWindow(IntPtr hWnd);

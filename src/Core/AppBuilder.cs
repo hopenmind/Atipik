@@ -100,8 +100,7 @@ public sealed class AppBuilder
         if (_modelPath is not null)
         {
             textualiser = new Textualiser { ShortSkipChars = _shortSkipChars };
-            await textualiser.InitializeAsync(_modelPath, "src/LLM/context.md",
-                keepContext: false, ct: ct);
+            await textualiser.InitializeAsync(_modelPath, keepContext: false, ct: ct);
             registry.Register(textualiser);
         }
 

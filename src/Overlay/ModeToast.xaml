@@ -1,0 +1,24 @@
+<Window x:Class="Atypik.Overlay.ModeToast"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="Manual">
+  <Border x:Name="Card"
+          Background="#E8120A1E"
+          BorderBrush="#FF7C36CC"
+          BorderThickness="1"
+          CornerRadius="10"
+          Padding="18,8">
+    <TextBlock x:Name="ModeLabel"
+               Foreground="#FFCFC1DE"
+               FontFamily="Segoe UI"
+               FontSize="14"
+               FontWeight="SemiBold"/>
+  </Border>
+</Window>

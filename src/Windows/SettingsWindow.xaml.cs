@@ -85,7 +85,7 @@ public partial class SettingsWindow : Window
         // Model path - restore saved path, fall back to default relative path
         string savedPath = File.Exists(ModelPathFile)
             ? File.ReadAllText(ModelPathFile).Trim()
-            : System.IO.Path.GetFullPath("src/LLM/textualiser.gguf");
+            : Atypik.Core.AppPrefs.ResolveModelPath();
         ModelPathBox.Text = savedPath;
 
         // Frustration mode
@@ -272,9 +272,9 @@ public partial class SettingsWindow : Window
         _downloading = true;
         DownloadModelBtn.IsEnabled = false;
 
-        string dest = string.IsNullOrWhiteSpace(ModelPathBox.Text)
-            ? System.IO.Path.GetFullPath("src/LLM/textualiser.gguf")
-            : ModelPathBox.Text.Trim();
+        // Always fetch into the app-managed location in LOCALAPPDATA, never a dev
+        // folder or the source tree. (Browse is for pointing at an existing model.)
+        string dest = Atypik.Core.AppPrefs.ModelFile;
 
         DownloadStatus.Text = "Downloading...";
         var progress = new Progress<int?>(p =>

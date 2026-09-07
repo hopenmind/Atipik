@@ -242,7 +242,13 @@ public partial class MainWindow : Window
     // -- Pipeline --------------------------------------------------------------
 
     public void SetPipeline(Core.ModularPipeline pipeline)
-        => _pipeline = pipeline;
+    {
+        _pipeline = pipeline;
+        // Apply the active output mode's prompt to the freshly loaded model
+        // (no-op when there is no Textualiser or the mode is not Poetry).
+        pipeline.GetModule<LLM.Textualiser>()?
+            .UsePoetryPrompt(Core.ModeState.Current == Core.OutputMode.Poetry);
+    }
 
     // -- Status helpers --------------------------------------------------------
 
