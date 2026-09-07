@@ -24,9 +24,8 @@ rust/**/target/
 *.gguf
 *.onnx
 *.bin
-src/LLM/textualiser.gguf
 
-# ---------- Python tooling (tools/) ----------
+# ---------- Python tooling ----------
 __pycache__/
 *.pyc
 *.pyo
@@ -40,7 +39,6 @@ debug_enabled
 *.log
 *.tmp
 *.bak
-BACKLOG.md
 
 # ---------- Editors / OS ----------
 .idea/
@@ -52,8 +50,5 @@ Desktop.ini
 # ---------- Secrets ----------
 *.pfx
 *.snk
+*.pem
 .env
-
-# ---------- strays ----------
-*.obj
-LEAN-CTX.md
