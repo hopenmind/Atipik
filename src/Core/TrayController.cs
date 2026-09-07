@@ -288,6 +288,18 @@ public sealed class TrayController : IDisposable
 
     private static (byte[] px, int w, int h) BuildBasePixels()
     {
+        // Embedded brand assets first: a single-file standalone build (-p:EmbedAssets=true)
+        // ships no loose assets folder, so the tray logo lives as a WPF resource.
+        foreach (var uri in new[]
+                 {
+                     "pack://application:,,,/assets/logo-ico.png",
+                     "pack://application:,,,/assets/logo.png",
+                 })
+        {
+            var got = PixelsFromPng(uri, out int w, out int h);
+            if (got is not null) return (got, w, h);
+        }
+        // Otherwise the loose files next to the exe (default build), then a drawn fallback.
         foreach (var candidate in new[]
                  {
                      System.IO.Path.Combine(AppContext.BaseDirectory, "assets", "logo-ico.png"),

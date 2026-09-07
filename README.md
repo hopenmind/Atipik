@@ -1,19 +1,37 @@
-<div align="center">
+<p align="center">
+  <img src="assets/logo.png" width="200" alt="A'Tipik">
+</p>
 
-<img src="assets/logo.png" width="110" alt="A'Tipik logo" />
+<p align="center">
+  <img src="brand/badges/platform.svg" alt="platform: Windows 10/11">
+  <img src="brand/badges/framework.svg" alt="framework: .NET 8">
+  <img src="brand/badges/license.svg" alt="license: Apache 2.0 or Commercial">
+  <img src="brand/badges/privacy.svg" alt="privacy: on-device">
+</p>
 
 # A'Tipik
 
-### A behavioural normaliser for atypical typists
+<img src="brand/ornament.svg" width="15" alt=""> A'Tipik is a small companion that types for you.
 
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-5E1FA8?logo=windows11)](https://github.com/)
-[![.NET](https://img.shields.io/badge/.NET-8.0-A77BD8?logo=dotnet)](https://dotnet.microsoft.com/)
-[![License](https://img.shields.io/badge/license-Dual%20(Apache%202.0%20%2F%20Commercial)-3A1070)](LICENSE)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-45D6C5)](CONTRIBUTING.md)
+<p align="center">
+  <img src="brand/hero.svg" width="900" alt="What A'Tipik does">
+</p>
 
-</div>
+<p align="center">
+  <a href="https://github.com/hopenmind/Atipik/releases/latest/download/Atypik-Standalone-win-x64.exe"><img src="brand/download-standalone.svg" width="300" alt="Download"></a>
+  <a href="https://github.com/hopenmind/Atipik/releases/latest/download/Atypik-Setup-win-x64.exe"><img src="brand/download-installer.svg" width="300" alt="Download"></a>
+</p>
 
-A'Tipik is a small companion that types for you.
+<img src="brand/rule.svg" width="100%" height="24" alt="">
+
+<a id="types"></a>
+<img src="brand/titles/types.svg" height="30" alt="Types for you">
+
+<img src="brand/ornament.svg" width="15" alt=""> You write your message; A'Tipik types it into any window, in your place, with a human rhythm. Your words are never changed.
+
+<p align="center">
+  <img src="brand/cards/pipeline.svg" width="900" alt="A'Tipik pipeline">
+</p>
 
 You write your message, exactly as you want it. A'Tipik then types it into any
 window, in your place, the way a person would. Your words are never changed.
@@ -47,26 +65,6 @@ a tool for fairness and dignity. Nothing more, nothing less.
 The app runs fully on its own. The optional correction model only steps in if
 you choose to turn it on.
 
-
-## Supported platforms and downloads
-
-| Platform | Status | Download |
-|---|---|---|
-| Windows x64 (Intel / AMD) | Supported | `Atypik-win-x64.zip` from the [latest release](../../releases) |
-| Windows ARM64 (Snapdragon / Surface Pro X) | Preview | `Atypik-win-arm64.zip` from the [latest release](../../releases) |
-| Linux | Not supported | A'Tipik is a WPF + Win32 app; see [Platform support](#platform-support) |
-| macOS | Not supported | Same reason; a port would be a separate project |
-
-Unzip anywhere and run `Atypik.exe`. No installer, no admin rights. The optional
-correction model is **not** bundled (to keep the download small). To enable it,
-either drop a GGUF file at `src\LLM\textualiser.gguf`, or open **Settings >
-Textualiser** and click **Download the correction model** to fetch it from
-GitHub into the right folder. The app is fully functional without it.
-
----
-
-## How it works
-
 ```mermaid
 flowchart LR
     accTitle: A'Tipik processing pipeline
@@ -93,9 +91,16 @@ The dashed stages are optional and fail safe: if a stage is off or errors, the
 text passes through unchanged. The pipeline never breaks on the model. Nothing
 leaves the machine.
 
----
+<img src="brand/rule.svg" width="100%" height="24" alt="">
 
-## Why
+<a id="why"></a>
+<img src="brand/titles/why.svg" height="30" alt="Behavioural normalisation">
+
+<img src="brand/ornament.svg" width="15" alt=""> Behavioural systems score how you type, using models trained on neurotypical data. A'Tipik normalises the output signature, not the person.
+
+<p align="center">
+  <img src="brand/cards/why.svg" width="360" alt="Normalise the signature">
+</p>
 
 Behavioural telemetry systems (CAPTCHA solvers, fraud detection, adaptive
 learning platforms) classify users from *how* they type, using models trained on
@@ -108,7 +113,32 @@ misread in writing, and the accumulated friction can push someone to send
 something they regret. The filter lets the release happen (writing it out is
 legitimate) but smooths or blocks the transmission at the action boundary.
 
-## Features
+<img src="brand/rule.svg" width="100%" height="24" alt="">
+
+<a id="privacy"></a>
+<img src="brand/titles/privacy.svg" height="30" alt="Privacy first">
+
+<img src="brand/ornament.svg" width="15" alt=""> Everything happens on your own computer. No account, no tracking, no one watching.
+
+<p align="center">
+  <img src="brand/cards/privacy.svg" width="360" alt="On your machine only">
+</p>
+
+- No network requests. Ever.
+- No telemetry collected.
+- Optional LLM inference is local (a GGUF model, on-device). Input never leaves the
+  machine.
+
+<img src="brand/rule.svg" width="100%" height="24" alt="">
+
+<a id="features"></a>
+<img src="brand/titles/features.svg" height="30" alt="Works without a model">
+
+<img src="brand/ornament.svg" width="15" alt=""> Install and use. Everything is functional out of the box; the local LLM stays optional.
+
+<p align="center">
+  <img src="brand/cards/features.svg" width="360" alt="Works out of the box">
+</p>
 
 - **Works without any model.** Install and use. Everything below is functional
   out of the box. The local LLM stays optional.
@@ -125,35 +155,12 @@ legitimate) but smooths or blocks the transmission at the action boundary.
 - **Privacy first.** No network requests. No telemetry. All optional LLM
   inference is local. Input never leaves the machine.
 
-## Install (prebuilt)
+<img src="brand/rule.svg" width="100%" height="24" alt="">
 
-1. Download `Atypik-win-x64.zip` from the latest [Release](../../releases).
-2. Unzip anywhere and run `Atypik.exe`. No installer, no admin rights.
-3. Optional: open Settings and click **Download the correction model** to fetch
-   it from GitHub (or drop a GGUF file at `src\LLM\textualiser.gguf`).
+<a id="shortcuts"></a>
+<img src="brand/titles/shortcuts.svg" height="30" alt="Shortcuts">
 
-## Build from source
-
-Prerequisites: [.NET 8 SDK](https://dotnet.microsoft.com/download) (Windows).
-Rust is only needed to rebuild the optional local LLM bridge.
-
-```pwsh
-git clone https://github.com/hopenmind/Atipik.git
-cd A-typik
-dotnet build -c Release
-# optional: rebuild the local LLM bridge (Rust + CMake + MSVC)
-# cd rust\atypik-llm; cargo build --release; cd ..\..
-dotnet run -c Release
-```
-
-For a portable, self-contained single-file exe:
-
-```pwsh
-.\scripts\build-release.ps1
-# output: publish\Atypik.exe (+ atypik_llm.dll if Rust was built)
-```
-
-## Shortcuts
+<img src="brand/ornament.svg" width="15" alt=""> A few global shortcuts drive the whole flow, from any application.
 
 | Shortcut | Action |
 |---|---|
@@ -163,13 +170,12 @@ For a portable, self-contained single-file exe:
 | `Shift+Enter` | Newline in the overlay |
 | `Esc` | Cancel / close the overlay |
 
-## Platform support
+<img src="brand/rule.svg" width="100%" height="24" alt="">
 
-A'Tipik is **Windows 10/11 only**. It depends on WPF and the Win32 `SendInput`
-API, which do not exist on Linux or macOS. A port would require replacing the
-entire UI and input-injection layer, so it is out of scope for now.
+<a id="families"></a>
+<img src="brand/titles/families.svg" height="30" alt="For families and educators">
 
-## For families and educators
+<img src="brand/ornament.svg" width="15" alt=""> Your child or student types differently, not incorrectly.
 
 Your child or student types differently, not incorrectly. Many online systems
 score *how* you type, using data from neurotypical users. When someone types
@@ -177,26 +183,12 @@ outside that pattern, the system can quietly restrict or flag them. A'Tipik
 types the ready text with a timing pattern these systems expect, without
 changing a word. Nothing is stored, nothing is sent to a server.
 
-## Privacy
+<img src="brand/rule.svg" width="100%" height="24" alt="">
 
-- No network requests. Ever.
-- No telemetry collected.
-- Optional LLM inference is local (a GGUF model, on-device). Input never leaves the
-  machine.
+<a id="technique"></a>
+<img src="brand/titles/technique.svg" height="30" alt="What is at stake">
 
-## Contributing
-
-Pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). To report a private security issue,
-see [SECURITY.md](SECURITY.md).
-
-## License
-
-Dual licensed. Personal, academic, and non-commercial use under Apache 2.0;
-commercial use requires a separate license from Hope 'n Mind SASU. See
-[LICENSE](LICENSE) for the full terms.
-
-## The technique, and what is at stake
+<img src="brand/ornament.svg" width="15" alt=""> How you are measured today, the deeper risk of normalising human rhythm, and where A'Tipik stands.
 
 ### How you are measured today
 Many websites and apps do not only read what you type. They record how you type: the time between keys, the rhythm of bursts and pauses, the small hesitations and corrections, how you move the mouse, how you scroll. Together this is called behavioural biometrics, or keystroke dynamics, and it shows up in concrete places:
@@ -220,14 +212,79 @@ Today these algorithms begin from the postulate that everyone is neurotypical, a
 
 While the industry refines its defaults, A'Tipik is a practical stopgap: it lets a real person keep their own rhythm and still pass through, today, without waiting for the systems to change. The goal is not to defeat classification, but to push it toward one that begins by accepting the full spectrum of how human minds work, and only then narrows. Ideally this tool becomes unnecessary. Until then, it restores a measure of fairness.
 
----
+<img src="brand/rule.svg" width="100%" height="24" alt="">
 
-<div align="center">
+<a id="contributing"></a>
+<img src="brand/titles/contributing.svg" height="30" alt="Contributing">
 
-<img src="assets/logo-editeur.png" width="120" alt="Hope 'n Mind logo" />
+<img src="brand/ornament.svg" width="15" alt=""> Pull requests are welcome.
 
-**A'Tipik** is published by **Hope 'n Mind SASU**
+Pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). To report a private security issue,
+see [SECURITY.md](SECURITY.md).
 
-SIREN 938 261 310 · RCS Brest · contact@hopenmind.com · hopenmind.com
+<img src="brand/rule.svg" width="100%" height="24" alt="">
 
-</div>
+<a id="install"></a>
+<img src="brand/titles/install.svg" height="30" alt="Install">
+
+<img src="brand/ornament.svg" width="15" alt=""> Two ways in: a single standalone exe that just runs, or a classic installer with a Start Menu shortcut. No admin rights either way.
+
+<p align="center">
+  <a href="https://github.com/hopenmind/Atipik/releases/latest/download/Atypik-Standalone-win-x64.exe"><img src="brand/download-standalone.svg" width="300" alt="Download"></a>
+</p>
+
+| Platform | File |
+|---|---|
+| Standalone (Windows x64, no install) | [Atypik-Standalone-win-x64.exe](https://github.com/hopenmind/Atipik/releases/latest/download/Atypik-Standalone-win-x64.exe) |
+| Installer (Windows x64) | [Atypik-Setup-win-x64.exe](https://github.com/hopenmind/Atipik/releases/latest/download/Atypik-Setup-win-x64.exe) |
+
+**Standalone.** Download `Atypik-Standalone-win-x64.exe`, double-click, and it runs. One self-contained file, no install, no admin rights: the runtime and the brand assets are all embedded.
+
+**Installer.** Prefer a classic setup? Download `Atypik-Setup-win-x64.exe` and run it. A'Tipik installs itself and adds a Start Menu shortcut, and can be removed from Add or remove programs.
+
+**The optional correction model** is not bundled, to keep the download small. To enable it, open **Settings > Textualiser** and click **Download the correction model**, or drop a GGUF file at `src\LLM\textualiser.gguf`. The app is fully functional without it.
+
+Prerequisites: [.NET 8 SDK](https://dotnet.microsoft.com/download) (Windows).
+Rust is only needed to rebuild the optional local LLM bridge.
+
+```pwsh
+git clone https://github.com/hopenmind/Atipik.git
+cd A-typik
+dotnet build -c Release
+# optional: rebuild the local LLM bridge (Rust + CMake + MSVC)
+# cd rust\atypik-llm; cargo build --release; cd ..\..
+dotnet run -c Release
+```
+
+For a portable, self-contained single-file exe:
+
+```pwsh
+.\scripts\build-release.ps1
+# output: publish\Atypik.exe (+ atypik_llm.dll if Rust was built)
+```
+
+<img src="brand/rule.svg" width="100%" height="24" alt="">
+
+<a id="limitations"></a>
+<img src="brand/titles/limitations.svg" height="30" alt="Limitations">
+
+<img src="brand/ornament.svg" width="15" alt=""> **Windows 10/11 only.** It depends on WPF and the Win32 SendInput API, which do not exist on Linux or macOS. A port would require replacing the entire UI and input-injection layer, so it is out of scope for now.
+
+<img src="brand/ornament.svg" width="15" alt=""> **ARM64 is a preview.** The Windows ARM64 build (Snapdragon, Surface Pro X) ships without the optional local LLM bridge.
+
+<img src="brand/ornament.svg" width="15" alt=""> **The correction model is not bundled.** To keep the download small, the optional GGUF model is fetched on demand or dropped in manually. The app is fully functional without it.
+
+<img src="brand/rule.svg" width="100%" height="24" alt="">
+
+<p align="center">[Security](SECURITY.md) &nbsp;&middot;&nbsp; [Contributing](CONTRIBUTING.md) &nbsp;&middot;&nbsp; [License](LICENSE)</p>
+
+<p align="center"><sub>Dual licensed. Personal, academic and non-commercial use under Apache 2.0; commercial use requires a separate license from Hope 'n Mind SASU. See LICENSE for the full terms.</sub></p>
+
+<br>
+
+<p align="center"><sub>A'Tipik is published by <b>Hope 'n Mind SASU</b></sub></p>
+<p align="center"><img src="assets/logo-editeur.png" width="120" alt="Hope 'n Mind SASU"></p>
+<p align="center"><sub>SIREN 938 261 310 &middot; RCS Brest &middot; contact@hopenmind.com &middot; hopenmind.com</sub></p>
+
+<p align="center"><em>You are judged by what you say, not by how your fingers say it.</em></p>

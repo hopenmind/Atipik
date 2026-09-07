@@ -11,9 +11,13 @@ obj/
 publish/
 publish-x64/
 publish-arm64/
+publish-standalone/
+publish-installer/
 stage/
 build/
+dist/
 Atypik-win-*.zip
+Atypik-*-win-*.exe
 icons/
 
 # ---------- Rust (optional local LLM bridge) ----------

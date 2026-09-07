@@ -15,12 +15,8 @@ permissions:
 
 jobs:
   build:
-    name: Build ${{ matrix.rid }}
+    name: Build win-x64
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        rid: [win-x64, win-arm64]
 
     steps:
       - name: Checkout
@@ -31,62 +27,73 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      # Optional local LLM bridge. Built only for x64 (it is optional; the app
-      # is fully functional without it). Cross-compiling llama.cpp to ARM64 is
-      # out of scope, so the ARM64 build ships without the DLL.
-      - name: Setup Rust (x64 only, optional)
-        if: matrix.rid == 'win-x64'
-        uses: dtolnay/rust-toolchain@stable
-        continue-on-error: true
-
-      - name: Build the local LLM bridge (x64 only)
-        if: matrix.rid == 'win-x64'
-        shell: pwsh
-        continue-on-error: true
-        run: cargo build --release --manifest-path rust/atypik-llm/Cargo.toml
-
-      - name: Publish single-file exe
-        shell: pwsh
-        run: |
-          dotnet publish Atypik.csproj -c Release `
-            -r ${{ matrix.rid }} `
-            --self-contained true `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
-            -p:EnableCompressionInSingleFile=true `
-            -o publish
-
-      - name: Stage package
-        shell: pwsh
-        run: |
-          $stage = "stage/Atypik"
-          New-Item -ItemType Directory -Force -Path $stage | Out-Null
-          Copy-Item "publish/Atypik.exe" -Destination $stage
-          Copy-Item "assets" -Destination $stage -Recurse -ErrorAction SilentlyContinue
-          # Optional Rust bridge, only present for x64.
-          $dll = "rust/atypik-llm/target/release/atypik_llm.dll"
-          if (Test-Path $dll) { Copy-Item $dll -Destination $stage }
-          Compress-Archive -Path "stage/Atypik/*" -DestinationPath "Atypik-${{ matrix.rid }}.zip" -Force
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Atypik-${{ matrix.rid }}
-          path: Atypik-${{ matrix.rid }}.zip
-
       - name: Resolve version
         id: ver
         shell: pwsh
         run: |
           $v = "${{ github.event.inputs.version }}"
-          if (-not $v) { $v = "${{ github.ref_name }}" }
+          if (-not $v) { $v = "${{ github.ref_name }}" -replace '^v', '' }
+          if (-not $v) { $v = "0.1.0" }
           "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Version: $v"
+
+      # Optional local LLM bridge (x64). The app is fully functional without it,
+      # so this is best-effort and never fails the build.
+      - name: Setup Rust (optional)
+        uses: dtolnay/rust-toolchain@stable
+        continue-on-error: true
+
+      - name: Build the local LLM bridge (optional)
+        shell: pwsh
+        continue-on-error: true
+        run: cargo build --release --manifest-path rust/atypik-llm/Cargo.toml
+
+      # 1) Standalone: ONE self-contained single-file exe, brand assets embedded,
+      #    so it runs from anywhere with no loose files and no install.
+      - name: Publish standalone (single file, assets embedded)
+        shell: pwsh
+        run: |
+          dotnet publish Atypik.csproj -c Release -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:EmbedAssets=true `
+            -o publish-standalone
+          Copy-Item "publish-standalone/Atypik.exe" "Atypik-Standalone-win-x64.exe" -Force
+
+      # 2) Installer payload: a folder build (a small exe + runtime DLLs + loose
+      #    brand assets) that the installer lays down next to a Start Menu shortcut.
+      - name: Publish installer payload (folder, lighter exe)
+        shell: pwsh
+        run: |
+          dotnet publish Atypik.csproj -c Release -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=false `
+            -o publish-installer
+
+      - name: Build the installer (Inno Setup)
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "/DMyAppVersion=${{ steps.ver.outputs.version }}" "installer\atipik.iss"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Atypik-win-x64
+          path: |
+            Atypik-Standalone-win-x64.exe
+            dist/Atypik-Setup-win-x64.exe
 
       - name: Attach to GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           name: A'Tipik ${{ steps.ver.outputs.version }}
-          files: Atypik-${{ matrix.rid }}.zip
+          files: |
+            Atypik-Standalone-win-x64.exe
+            dist/Atypik-Setup-win-x64.exe
           draft: false
           prerelease: true

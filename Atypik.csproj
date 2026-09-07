@@ -34,9 +34,15 @@
     <Resource Include="src\Resources\**" />
   </ItemGroup>
 
-  <!-- Brand assets (app logo, editor logo) - copied next to the exe for tray + XAML Image -->
-  <ItemGroup>
+  <!-- Brand assets (app logo, editor logo). Default: copied next to the exe, so
+       the tray and XAML Images load them from disk (unchanged behaviour). With
+       -p:EmbedAssets=true they are embedded as WPF resources instead, so a
+       single-file standalone exe carries them with no loose assets folder. -->
+  <ItemGroup Condition="'$(EmbedAssets)' != 'true'">
     <None Include="assets\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EmbedAssets)' == 'true'">
+    <Resource Include="assets\**" />
   </ItemGroup>
 
   <!--  Rust DLL - copied to output dir so dev builds work, bundled on publish  -->
