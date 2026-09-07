@@ -96,4 +96,5 @@ jobs:
             Atypik-Standalone-win-x64.exe
             dist/Atypik-Setup-win-x64.exe
           draft: false
-          prerelease: true
+          prerelease: false
+          make_latest: true
