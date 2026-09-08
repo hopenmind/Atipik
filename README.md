@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" width="200" alt="A'Tipik">
+  <img src="brand/banner.svg" width="900" alt="A'Tipik">
 </p>
 
 <p align="center">
