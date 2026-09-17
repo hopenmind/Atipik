@@ -1,0 +1,244 @@
+<Window x:Class="Atypik.Overlay.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowStartupLocation="Manual"
+        MinHeight="28"
+        MinWidth="80">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="30"/>   <!-- flux strip: above the frame, outside the target -->
+      <RowDefinition Height="*"/>    <!-- text frame: over the target field -->
+    </Grid.RowDefinitions>
+
+    <!-- ++ FLUX STRIP - live pipeline flow + status + quick-settings icon +++++++ -->
+    <Grid x:Name="FluxStrip" Grid.Row="0" Background="#73120A1E">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- flow visualisation -->
+      <Grid Grid.Column="0" Margin="10,0,6,0" ClipToBounds="True">
+        <!-- track (soft violet -> teal gradient) -->
+        <Border Height="4" CornerRadius="2" VerticalAlignment="Center">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+              <GradientStop Color="#33A77BD8" Offset="0"/>
+              <GradientStop Color="#3345D6C5" Offset="1"/>
+            </LinearGradientBrush>
+          </Border.Background>
+        </Border>
+
+        <!-- travelling highlight sweep (animated during processing) -->
+        <Border x:Name="FluxSweep" Height="4" Width="70" CornerRadius="2"
+                HorizontalAlignment="Left" VerticalAlignment="Center"
+                Opacity="0" IsHitTestVisible="False">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+              <GradientStop Color="#0045D6C5" Offset="0"/>
+              <GradientStop Color="#B345D6C5" Offset="0.5"/>
+              <GradientStop Color="#0045D6C5" Offset="1"/>
+            </LinearGradientBrush>
+          </Border.Background>
+          <Border.RenderTransform>
+            <TranslateTransform x:Name="FluxSweepShift"/>
+          </Border.RenderTransform>
+        </Border>
+
+        <!-- pipeline stage nodes: capture -> correction -> kinetic -> injection -->
+        <UniformGrid Rows="1" Columns="4" VerticalAlignment="Center" Margin="6,0,6,0">
+          <Ellipse x:Name="Node0" Width="9" Height="9" HorizontalAlignment="Center" Fill="#66A77BD8"/>
+          <Ellipse x:Name="Node1" Width="9" Height="9" HorizontalAlignment="Center" Fill="#66A77BD8"/>
+          <Ellipse x:Name="Node2" Width="9" Height="9" HorizontalAlignment="Center" Fill="#66A77BD8"/>
+          <Ellipse x:Name="Node3" Width="9" Height="9" HorizontalAlignment="Center" Fill="#66A77BD8"/>
+        </UniformGrid>
+
+        <!-- travelling luminous comet (animated during processing) -->
+        <Ellipse x:Name="FluxComet" Width="14" Height="14"
+                 HorizontalAlignment="Left" VerticalAlignment="Center"
+                 Opacity="0" IsHitTestVisible="False">
+          <Ellipse.Fill>
+            <RadialGradientBrush>
+              <GradientStop Color="#FF9DF5EC" Offset="0"/>
+              <GradientStop Color="#FF45D6C5" Offset="0.5"/>
+              <GradientStop Color="#0045D6C5" Offset="1"/>
+            </RadialGradientBrush>
+          </Ellipse.Fill>
+          <Ellipse.RenderTransform>
+            <TranslateTransform x:Name="FluxCometShift"/>
+          </Ellipse.RenderTransform>
+        </Ellipse>
+
+        <!-- status text - lives in the strip (outside the frame), so it never
+             overlaps the target text. Left-aligned pill for legibility. -->
+        <Border x:Name="StatusPill"
+                VerticalAlignment="Center" HorizontalAlignment="Left"
+                Background="#E6120A1E"
+                BorderBrush="#FF7C36CC" BorderThickness="1"
+                CornerRadius="7" Padding="7,1"
+                Panel.ZIndex="10"
+                Visibility="Collapsed">
+          <TextBlock x:Name="StatusLabel"
+                     Foreground="#FFE6DEF5" FontFamily="Segoe UI" FontSize="10"/>
+        </Border>
+      </Grid>
+
+      <!-- quick-settings icon: top-right, brand mark, larger + robustly loaded -->
+      <Button x:Name="OptionsBtn" Grid.Column="1"
+              VerticalAlignment="Center" HorizontalAlignment="Right"
+              Margin="0,0,4,0" Width="26" Height="26"
+              Panel.ZIndex="20"
+              ToolTip="Quick settings" Cursor="Hand"
+              Click="OnOptionsClick"
+              Background="#CC120A1E" BorderThickness="0">
+        <Button.Content>
+          <Image x:Name="OptionsIcon" Width="22" Height="22"
+                 RenderOptions.BitmapScalingMode="HighQuality"/>
+        </Button.Content>
+        <Button.Template>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}" CornerRadius="6" Width="26" Height="26">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#FF221634"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
+    </Grid>
+
+    <!-- Frame border + text input. Background alpha is set from settings at load. -->
+    <Border x:Name="FrameBorder" Grid.Row="1"
+            BorderBrush="#FF7C36CC"
+            BorderThickness="2"
+            Background="#66120A1E">
+      <Grid>
+
+        <!-- Text input - fills entire frame -->
+        <TextBox x:Name="InputBox"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto"
+                 Background="Transparent"
+                 Foreground="White"
+                 CaretBrush="#FFA77BD8"
+                 SelectionBrush="#557C36CC"
+                 BorderThickness="0"
+                 Padding="6,4"
+                 FontFamily="Segoe UI"
+                 FontSize="12"
+                 VerticalContentAlignment="Top"
+                 PreviewKeyDown="OnInputKeyDown"/>
+
+        <!-- Progress bar (thin, at the very bottom edge of the frame) -->
+        <Border x:Name="ProgressBorder"
+                VerticalAlignment="Bottom"
+                Height="4"
+                Visibility="Collapsed"
+                Background="Transparent">
+          <ProgressBar x:Name="InjectionProgress"
+                       Height="4"
+                       Minimum="0" Maximum="100" Value="0"
+                       Foreground="#FF45D6C5"
+                       Background="#2245D6C5"
+                       BorderThickness="0"/>
+        </Border>
+
+      </Grid>
+    </Border>
+
+    <!-- Options context menu (hidden by default) -->
+    <Popup x:Name="OptionsPopup"
+           StaysOpen="False"
+           PlacementTarget="{Binding ElementName=OptionsBtn}"
+           Placement="Bottom">
+      <Border Background="#FF170F26"
+              BorderBrush="#FF5E1FA8"
+              BorderThickness="1"
+              CornerRadius="4"
+              Padding="4">
+        <StackPanel MinWidth="190">
+
+          <!-- Header: logo + name -->
+          <StackPanel Orientation="Horizontal" Margin="4,2,4,6">
+            <Image x:Name="PopupIcon" Width="16" Height="16"
+                   RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
+            <TextBlock Text="A-typik" Foreground="#FFCFC1DE" FontFamily="Segoe UI"
+                       FontWeight="SemiBold" FontSize="11" Margin="6,0,0,0" VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <Rectangle Height="1" Fill="#FF2C1E44" Margin="4,0,4,6"/>
+
+          <!-- Output mode -->
+          <TextBlock Text="MODE" Foreground="#FF45D6C5" FontFamily="Segoe UI"
+                     FontWeight="Bold" FontSize="9" Margin="6,0,0,4"/>
+          <RadioButton x:Name="ModeOffRadio" GroupName="mode" Content="Off (no correction)"
+                       Foreground="#FFE6DEF5" FontSize="11" Margin="8,1" Cursor="Hand"
+                       Checked="OnModeRadioChecked" Tag="off"/>
+          <RadioButton x:Name="ModeCorrectionRadio" GroupName="mode" Content="Correction"
+                       Foreground="#FFE6DEF5" FontSize="11" Margin="8,1" Cursor="Hand"
+                       Checked="OnModeRadioChecked" Tag="correction"/>
+          <RadioButton x:Name="ModePoetryRadio" GroupName="mode" Content="Poetry"
+                       Foreground="#FFE6DEF5" FontSize="11" Margin="8,1" Cursor="Hand"
+                       Checked="OnModeRadioChecked" Tag="poetry"/>
+
+          <Rectangle Height="1" Fill="#FF2C1E44" Margin="4,6,4,6"/>
+
+          <!-- Quick options -->
+          <CheckBox x:Name="SendEnterCheck" Content="Validate with Enter"
+                    Foreground="#FFE6DEF5" FontSize="11" Margin="8,1" Cursor="Hand"
+                    Checked="OnSendEnterToggled" Unchecked="OnSendEnterToggled"
+                    ToolTip="After injecting, press Enter in the target to send"/>
+          <CheckBox x:Name="PasteModeQuickCheck" Content="Fast paste mode"
+                    Foreground="#FFE6DEF5" FontSize="11" Margin="8,1" Cursor="Hand"
+                    Checked="OnPasteModeToggled" Unchecked="OnPasteModeToggled"
+                    ToolTip="Paste the whole message at once instead of typing it"/>
+
+          <!-- Overlay transparency -->
+          <TextBlock Text="OVERLAY BACKGROUND" Foreground="#FF45D6C5" FontFamily="Segoe UI"
+                     FontWeight="Bold" FontSize="9" Margin="6,6,0,2"/>
+          <Slider x:Name="OpacityQuickSlider" Minimum="0" Maximum="100"
+                  Margin="8,1,8,2" Cursor="Hand"
+                  ToolTip="Frame background opacity (lower = more see-through)"
+                  ValueChanged="OnOpacityQuickChanged"/>
+
+          <Rectangle Height="1" Fill="#FF2C1E44" Margin="4,6,4,4"/>
+
+          <Button x:Name="PopupCancelBtn"
+                  Content="Close overlay"
+                  Cursor="Hand"
+                  Click="OnCancel"
+                  Background="Transparent"
+                  Foreground="#FFCC4444"
+                  BorderThickness="0"
+                  Padding="8,4"
+                  HorizontalContentAlignment="Left">
+            <Button.Template>
+              <ControlTemplate TargetType="Button">
+                <Border Background="{TemplateBinding Background}"
+                        CornerRadius="3" Padding="{TemplateBinding Padding}">
+                  <ContentPresenter/>
+                </Border>
+                <ControlTemplate.Triggers>
+                  <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#22CC4444"/>
+                  </Trigger>
+                </ControlTemplate.Triggers>
+              </ControlTemplate>
+            </Button.Template>
+          </Button>
+        </StackPanel>
+      </Border>
+    </Popup>
+
+  </Grid>
+</Window>

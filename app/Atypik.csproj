@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>Atypik</AssemblyName>
+    <RootNamespace>Atypik</RootNamespace>
+    <ApplicationIcon>src\Resources\atypik.ico</ApplicationIcon>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!--    Portable single-file exe - no install required    -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <!--  Embed native DLLs inside the exe, extracted to %TEMP% on first run  -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--  Declare App.xaml as entry-point (SDK auto-detect doesn't reliably find it in src/)  -->
+    <ApplicationDefinition Include="src\App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="src\Resources\**" />
+  </ItemGroup>
+
+  <!-- Brand assets (app logo, editor logo). Default: copied next to the exe, so
+       the tray and XAML Images load them from disk (unchanged behaviour). With
+       -p:EmbedAssets=true they are embedded as WPF resources instead, so a
+       single-file standalone exe carries them with no loose assets folder. -->
+  <ItemGroup Condition="'$(EmbedAssets)' != 'true'">
+    <None Include="assets\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EmbedAssets)' == 'true'">
+    <Resource Include="assets\**" />
+  </ItemGroup>
+
+  <!-- LLM prompt files embedded as resources, so a single-file or installed exe
+       carries them and never depends on a src/LLM folder at runtime. -->
+  <ItemGroup>
+    <EmbeddedResource Include="src\LLM\context.md"><LogicalName>context.md</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="src\LLM\rewrite_context.md"><LogicalName>rewrite_context.md</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="src\LLM\poetry_context.md"><LogicalName>poetry_context.md</LogicalName></EmbeddedResource>
+  </ItemGroup>
+
+  <!--  Rust DLL - copied to output dir so dev builds work, bundled on publish  -->
+  <ItemGroup>
+    <None Include="rust\atypik-llm\target\release\atypik_llm.dll"
+          Condition="Exists('rust\atypik-llm\target\release\atypik_llm.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--  Copy Rust DLL after build (dev mode)  -->
+  <Target Name="CopyRustDll" AfterTargets="Build">
+    <Copy SourceFiles="rust\atypik-llm\target\release\atypik_llm.dll"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('rust\atypik-llm\target\release\atypik_llm.dll')" />
+  </Target>
+
+</Project>
